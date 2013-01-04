@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Video CT feature.
+ */
+
+include_once 'video_ct.features.inc';
