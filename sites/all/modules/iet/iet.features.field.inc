@@ -50,7 +50,7 @@ function iet_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 4,
+          'weight' => '3',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -74,7 +74,7 @@ function iet_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '4',
+        'weight' => '6',
       ),
     ),
   );
@@ -124,7 +124,7 @@ function iet_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 7,
+          'weight' => '6',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -145,141 +145,7 @@ function iet_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '8',
-      ),
-    ),
-  );
-
-  // Exported field: 'node-interactive_e_learning_tools-field_embed_code_display'.
-  $fields['node-interactive_e_learning_tools-field_embed_code_display'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_embed_code_display',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '0',
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'interactive_e_learning_tools',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 5,
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_embed_code_display',
-      'label' => 'Embed Code Display',
-      'required' => 1,
-      'settings' => array(
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '7',
-      ),
-    ),
-  );
-
-  // Exported field: 'node-interactive_e_learning_tools-field_game_embed'.
-  $fields['node-interactive_e_learning_tools-field_game_embed'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_game_embed',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '0',
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'interactive_e_learning_tools',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 2,
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_game_embed',
-      'label' => 'Game Embed',
-      'required' => 1,
-      'settings' => array(
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '2',
+        'weight' => '4',
       ),
     ),
   );
@@ -324,7 +190,7 @@ function iet_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 3,
+          'weight' => '2',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -348,19 +214,86 @@ function iet_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '3',
+        'weight' => '5',
       ),
     ),
   );
 
-  // Exported field: 'node-interactive_e_learning_tools-field_iet_thumbnail'.
-  $fields['node-interactive_e_learning_tools-field_iet_thumbnail'] = array(
+  // Exported field: 'node-interactive_e_learning_tools-field_iet_description'.
+  $fields['node-interactive_e_learning_tools-field_iet_description'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_iet_thumbnail',
+      'field_name' => 'field_iet_description',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'text_long',
+    ),
+    'field_instance' => array(
+      'bundle' => 'interactive_e_learning_tools',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Describe this IET',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 7,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_iet_description',
+      'label' => 'Description',
+      'required' => 1,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'rows' => '5',
+        ),
+        'type' => 'text_textarea',
+        'weight' => '1',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-interactive_e_learning_tools-field_iet_image'.
+  $fields['node-interactive_e_learning_tools-field_iet_image'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_iet_image',
       'foreign keys' => array(
         'fid' => array(
           'columns' => array(
@@ -377,7 +310,7 @@ function iet_field_default_fields() {
       'locked' => '0',
       'module' => 'image',
       'settings' => array(
-        'default_image' => '1',
+        'default_image' => '9',
         'uri_scheme' => 'public',
       ),
       'translatable' => '0',
@@ -386,7 +319,7 @@ function iet_field_default_fields() {
     'field_instance' => array(
       'bundle' => 'interactive_e_learning_tools',
       'deleted' => '0',
-      'description' => 'Thumbnails must meet the exact specifications below. If you need to edit your image, visit http://pixlr.com/editor/',
+      'description' => 'If you need to edit your image, visit http://pixlr.com/editor/',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -406,17 +339,17 @@ function iet_field_default_fields() {
         ),
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_iet_thumbnail',
-      'label' => 'Thumbnail',
-      'required' => 0,
+      'field_name' => 'field_iet_image',
+      'label' => 'IET Image',
+      'required' => 1,
       'settings' => array(
         'alt_field' => 1,
         'default_image' => 0,
-        'file_directory' => 'thumbnails-iet',
+        'file_directory' => 'iet',
         'file_extensions' => 'png gif jpg jpeg',
-        'max_filesize' => '100KB',
-        'max_resolution' => '150x150',
-        'min_resolution' => '150x150',
+        'max_filesize' => '500 kb',
+        'max_resolution' => '900x600',
+        'min_resolution' => '600x200',
         'title_field' => 1,
         'user_register_form' => FALSE,
       ),
@@ -428,7 +361,76 @@ function iet_field_default_fields() {
           'progress_indicator' => 'throbber',
         ),
         'type' => 'image_image',
-        'weight' => '6',
+        'weight' => '3',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-interactive_e_learning_tools-field_iet_url'.
+  $fields['node-interactive_e_learning_tools-field_iet_url'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_iet_url',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'translatable' => '0',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'interactive_e_learning_tools',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Enter the IET folder name. The URL will be created automatically. For example, if the address to the IET is http://lsteam.org/iet/aseptic/index.html simply enter <strong>aseptic</strong>.',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => '0',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_iet_url',
+      'label' => 'IET Name',
+      'required' => 1,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '2',
       ),
     ),
   );
@@ -478,7 +480,7 @@ function iet_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 1,
+          'weight' => '5',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -499,7 +501,7 @@ function iet_field_default_fields() {
         'module' => 'options',
         'settings' => array(),
         'type' => 'options_select',
-        'weight' => '1',
+        'weight' => '8',
       ),
     ),
   );
@@ -544,7 +546,7 @@ function iet_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 6,
+          'weight' => '4',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -568,7 +570,7 @@ function iet_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '5',
+        'weight' => '7',
       ),
     ),
   );
@@ -576,14 +578,16 @@ function iet_field_default_fields() {
   // Translatables
   // Included for use with string extractors like potx.
   t('Apple Link');
-  t('Embed Code Display');
-  t('Game Embed');
+  t('Describe this IET');
+  t('Description');
+  t('Enter the IET folder name. The URL will be created automatically. For example, if the address to the IET is http://lsteam.org/iet/aseptic/index.html simply enter <strong>aseptic</strong>.');
   t('Google Android Link');
+  t('IET Image');
+  t('IET Name');
+  t('If you need to edit your image, visit http://pixlr.com/editor/');
   t('Subject');
   t('Survey Link');
   t('Tags');
-  t('Thumbnail');
-  t('Thumbnails must meet the exact specifications below. If you need to edit your image, visit http://pixlr.com/editor/');
   t('Use the CTRL button on your keyboard to select multiple terms.');
 
   return $fields;

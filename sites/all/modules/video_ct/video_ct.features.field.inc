@@ -55,7 +55,7 @@ function video_ct_field_default_fields() {
           'module' => 'taxonomy',
           'settings' => array(),
           'type' => 'taxonomy_term_reference_link',
-          'weight' => 5,
+          'weight' => '2',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -119,7 +119,7 @@ function video_ct_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 6,
+          'weight' => '1',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -133,7 +133,7 @@ function video_ct_field_default_fields() {
       'label' => 'Description',
       'required' => 1,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -143,7 +143,7 @@ function video_ct_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '8',
+        'weight' => '3',
       ),
     ),
   );
@@ -179,14 +179,13 @@ function video_ct_field_default_fields() {
       'bundle' => 'video_ct',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'Copy and paste the YouTube embed code here. This will display the code so others can embed the webinar.',
+      'description' => 'Copy and paste the embed code here.',
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'text',
           'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 4,
+          'type' => 'hidden',
+          'weight' => '4',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -197,10 +196,10 @@ function video_ct_field_default_fields() {
       ),
       'entity_type' => 'node',
       'field_name' => 'field_video_embed_code_display',
-      'label' => 'Embed Code Display',
+      'label' => 'Embed Code',
       'required' => 1,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -210,7 +209,7 @@ function video_ct_field_default_fields() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '3',
+        'weight' => '1',
       ),
     ),
   );
@@ -248,17 +247,13 @@ function video_ct_field_default_fields() {
     'field_instance' => array(
       'bundle' => 'video_ct',
       'deleted' => '0',
-      'description' => 'Thumbnails must meet the exact specifications below. If you need to edit your image, visit http://pixlr.com/editor/',
+      'description' => 'Thumbnails must meet the exact specifications. If you need to edit your image, visit http://pixlr.com/editor/',
       'display' => array(
         'default' => array(
           'label' => 'above',
-          'module' => 'image',
-          'settings' => array(
-            'image_link' => '',
-            'image_style' => '',
-          ),
-          'type' => 'image',
-          'weight' => 2,
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => '3',
         ),
         'teaser' => array(
           'label' => 'above',
@@ -295,159 +290,15 @@ function video_ct_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-video_ct-field_video_youtube_channel'.
-  $fields['node-video_ct-field_video_youtube_channel'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_video_youtube_channel',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '0',
-      'module' => 'text',
-      'settings' => array(
-        'max_length' => '255',
-      ),
-      'translatable' => '0',
-      'type' => 'text',
-    ),
-    'field_instance' => array(
-      'bundle' => 'video_ct',
-      'default_value' => array(
-        0 => array(
-          'value' => 'https://www.youtube.com/ncbionetwork',
-        ),
-      ),
-      'deleted' => '0',
-      'description' => 'You should not need to alter the value in this field.',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 3,
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_video_youtube_channel',
-      'label' => 'Our YouTube Channel',
-      'required' => 1,
-      'settings' => array(
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'size' => '60',
-        ),
-        'type' => 'text_textfield',
-        'weight' => '2',
-      ),
-    ),
-  );
-
-  // Exported field: 'node-video_ct-field_video_youtube_embed'.
-  $fields['node-video_ct-field_video_youtube_embed'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_video_youtube_embed',
-      'foreign keys' => array(
-        'format' => array(
-          'columns' => array(
-            'format' => 'format',
-          ),
-          'table' => 'filter_format',
-        ),
-      ),
-      'indexes' => array(
-        'format' => array(
-          0 => 'format',
-        ),
-      ),
-      'locked' => '0',
-      'module' => 'text',
-      'settings' => array(),
-      'translatable' => '0',
-      'type' => 'text_long',
-    ),
-    'field_instance' => array(
-      'bundle' => 'video_ct',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => 'Copy and paste the YouTube code snippet here.',
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'module' => 'text',
-          'settings' => array(),
-          'type' => 'text_default',
-          'weight' => 1,
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_video_youtube_embed',
-      'label' => 'YouTube Embed',
-      'required' => 1,
-      'settings' => array(
-        'text_processing' => '0',
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'text',
-        'settings' => array(
-          'rows' => '5',
-        ),
-        'type' => 'text_textarea',
-        'weight' => '1',
-      ),
-    ),
-  );
-
   // Translatables
   // Included for use with string extractors like potx.
-  t('Copy and paste the YouTube code snippet here.');
-  t('Copy and paste the YouTube embed code here. This will display the code so others can embed the webinar.');
+  t('Copy and paste the embed code here.');
   t('Description');
-  t('Embed Code Display');
-  t('Our YouTube Channel');
+  t('Embed Code');
   t('Tags');
   t('Thumbnail');
-  t('Thumbnails must meet the exact specifications below. If you need to edit your image, visit http://pixlr.com/editor/');
+  t('Thumbnails must meet the exact specifications. If you need to edit your image, visit http://pixlr.com/editor/');
   t('Use the CTRL button on your keyboard to select multiple terms.');
-  t('You should not need to alter the value in this field.');
-  t('YouTube Embed');
 
   return $fields;
 }
