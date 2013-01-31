@@ -1,0 +1,16 @@
+name = Views Ajax Fade
+description = Applies a fadeIn/Out effect on views displays that have "Ajax" enabled.
+core = 7.x
+dependencies[] = views
+package = Views
+
+; Files
+files[] = views_ajax_fade.views.inc
+files[] = views_plugin_ajax_fade.inc
+
+; Information added by drupal.org packaging script on 2013-01-25
+version = "7.x-1.2"
+core = "7.x"
+project = "views_ajax_fade"
+datestamp = "1359133768"
+
