@@ -60,7 +60,7 @@ function menu_force_form_alter(&$form, &$form_state, $form_id) {
           $form['menu']['link']['hidden'] = array(
             '#type' => 'checkbox',
             '#title' => t('Disable menu item'),
-            '#description' => t('Menu links that are not enabled will not be listed in any menu. It is disabled by default. Uncheck to make the menu item visible.'),
+            '#description' => t('Menu links that are not enabled will not be listed in any menu.'),
             '#default_value' => $form['menu']['link']['hidden']['#value']=TRUE,
             '#weight' => 50,
           );

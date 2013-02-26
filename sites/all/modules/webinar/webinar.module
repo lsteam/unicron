@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Webinar feature.
- */
-
-include_once 'webinar.features.inc';
