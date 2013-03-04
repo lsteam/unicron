@@ -91,9 +91,13 @@
         $(this).click(function() {
           if (Drupal.settings.viewsSlideshow[uniqueID].paused) {
             Drupal.viewsSlideshow.action({ "action": 'play', "slideshowID": uniqueID, "force": true });
+            $('.views_slideshow_controls_text_pause').removeClass('views-slideshow-controls-text-status-play');
+            $('.views_slideshow_controls_text_pause').addClass('views-slideshow-controls-text-status-pause');
           }
           else {
             Drupal.viewsSlideshow.action({ "action": 'pause', "slideshowID": uniqueID, "force": true });
+            $('.views_slideshow_controls_text_pause').removeClass('views-slideshow-controls-text-status-pause');
+            $('.views_slideshow_controls_text_pause').addClass('views-slideshow-controls-text-status-play');
           }
           return false;
         });
