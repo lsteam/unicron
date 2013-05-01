@@ -23,6 +23,7 @@ function filefield_source_reference_info() {
     'process' => 'filefield_source_reference_process',
     'value' => 'filefield_source_reference_value',
     'weight' => 1,
+    'file' => 'includes/reference.inc',
   );
   return $source;
 }
@@ -239,6 +240,7 @@ function filefield_source_reference_get_files($filename, $instance = NULL) {
     $query->condition('f.status', 1);
     $query->condition('f.filename', $like, 'LIKE');
     $query->orderBy('f.timestamp', 'DESC');
+    $query->groupBy('f.fid');
     $query->range(0, 30);
     $result = $query->execute();
 
