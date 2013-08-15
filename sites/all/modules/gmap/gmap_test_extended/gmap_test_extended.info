@@ -34,9 +34,9 @@ files[] = gmap_test_extended.features.inc
 files[] = gmap_test_extended.views_default.inc
 files[] = tests/gmap_test_extended.test
 
-; Information added by drupal.org packaging script on 2013-03-31
-version = "7.x-2.6"
+; Information added by drupal.org packaging script on 2013-06-20
+version = "7.x-2.7"
 core = "7.x"
 project = "gmap"
-datestamp = "1364754012"
+datestamp = "1371720661"
 

@@ -20,7 +20,7 @@ TODO:
 function location_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module', 'location') .'/handlers',
+      'path' => drupal_get_path('module', 'location') . '/handlers',
     ),
     'handlers' => array(
       'location_views_handler_field_latitude' => array(
@@ -112,6 +112,12 @@ function location_views_data() {
     ),
     // Location links to node_revision through location_instance via lid.
     'node_revision' => array(
+      'left_table' => 'location_instance',
+      'left_field' => 'lid',
+      'field' => 'lid',
+    ),
+    // Location links to taxonomy_term_data through location_instance via lid.
+    'taxonomy_term_data' => array(
       'left_table' => 'location_instance',
       'left_field' => 'lid',
       'field' => 'lid',
@@ -346,16 +352,16 @@ function location_views_data() {
 //    ),
 //  );
 
-/*
-      'latitude' => array(
-        'name' => t('Latitude'),
-        'sortable' => TRUE,
-      ),
-      'longitude' => array(
-        'name' => t('Longitude'),
-        'sortable' => TRUE,
-      ),
-*/
+  /*
+        'latitude' => array(
+          'name' => t('Latitude'),
+          'sortable' => TRUE,
+        ),
+        'longitude' => array(
+          'name' => t('Longitude'),
+          'sortable' => TRUE,
+        ),
+  */
 
 
   $data['location']['address'] = array(
@@ -369,7 +375,7 @@ function location_views_data() {
   );
 
 
-  $data['location_instance']['table']['group']  = t('Location');
+  $data['location_instance']['table']['group'] = t('Location');
 
   $data['location_instance']['table']['join'] = array(
     'location' => array(
@@ -388,6 +394,10 @@ function location_views_data() {
       'left_field' => 'vid',
       'field' => 'vid',
     ),
+    'taxonomy_term_data' => array(
+      'left_field' => 'tid',
+      'field' => 'vid',
+    ),
   );
 
 
@@ -401,6 +411,11 @@ function location_views_data() {
     'left_table' => 'location_instance',
     'left_field' => 'vid',
     'field' => 'vid',
+  );
+  $data['taxonomy_term_data']['table']['join']['location'] = array(
+    'left_table' => 'location_instance',
+    'left_field' => 'vid',
+    'field' => 'tid',
   );
   $data['users']['table']['join']['location'] = array(
     'left_table' => 'location_instance',
@@ -452,11 +467,15 @@ function location_views_proximity_get_argument_options($view) {
       $uid_argument_options[$id] = $handler->ui_name();
       $nid_argument_options[$id] = $handler->ui_name();
     }
-    else if ($handler->field == 'nid') {
-      $nid_argument_options[$id] = $handler->ui_name();
-    }
-    else if ($handler->field == 'uid') {
-      $uid_argument_options[$id] = $handler->ui_name();
+    else {
+      if ($handler->field == 'nid') {
+        $nid_argument_options[$id] = $handler->ui_name();
+      }
+      else {
+        if ($handler->field == 'uid') {
+          $uid_argument_options[$id] = $handler->ui_name();
+        }
+      }
     }
   }
   return array($nid_argument_options, $uid_argument_options);
@@ -487,15 +506,20 @@ function location_views_proximity_get_reference_location($view, $options) {
         $coordinates['latitude'] = (float) $user_locations[$i]['latitude'];
         $coordinates['longitude'] = (float) $user_locations[$i]['longitude'];
       }
-      else if ($options['origin'] == 'hybrid') {
-        $coordinates['latitude'] = (float) $options['latitude'];
-        $coordinates['longitude'] = (float) $options['longitude'];
+      else {
+        if ($options['origin'] == 'hybrid') {
+          $coordinates['latitude'] = (float) $options['latitude'];
+          $coordinates['longitude'] = (float) $options['longitude'];
+        }
       }
       break;
     case 'static':
     case 'latlon_gmap':
-      $coordinates['latitude'] = (float) $options['latitude'];
-      $coordinates['longitude'] = (float) $options['longitude'];
+      // Validate actual values
+      if ( !empty( $options['latitude'] ) && !empty( $options['longitude'] ) ) {
+        $coordinates['latitude'] = (float) $options['latitude'];
+        $coordinates['longitude'] = (float) $options['longitude'];
+      }
       break;
     case 'tied':
       if (!empty($view->filter)) {
@@ -550,9 +574,11 @@ function location_views_proximity_get_reference_location($view, $options) {
                 $coordinates['latitude'] = (float) $cck_location[LANGUAGE_NONE][0]['latitude'];
                 $coordinates['longitude'] = (float) $cck_location[LANGUAGE_NONE][0]['longitude'];
               }
-              else if (isset($cck_location[0]['longitude']) && isset($cck_location[0]['latitude'])) {
-                $coordinates['latitude'] = (float) $cck_location[0]['latitude'];
-                $coordinates['longitude'] = (float) $cck_location[0]['longitude'];
+              else {
+                if (isset($cck_location[0]['longitude']) && isset($cck_location[0]['latitude'])) {
+                  $coordinates['latitude'] = (float) $cck_location[0]['latitude'];
+                  $coordinates['longitude'] = (float) $cck_location[0]['longitude'];
+                }
               }
             }
           }
@@ -583,10 +609,12 @@ function location_views_proximity_get_reference_location($view, $options) {
       $coordinates['latitude'] = (float) $options['latitude'];
       $coordinates['longitude'] = (float) $options['longitude'];
       if (module_exists('smart_ip')) {
-        if (isset($_SESSION['smart_ip']['location']['latitude']) &&
-          isset($_SESSION['smart_ip']['location']['longitude'])) {
-          $coordinates['latitude'] = (float) $_SESSION['smart_ip']['location']['latitude'];
-          $coordinates['longitude'] = (float) $_SESSION['smart_ip']['location']['longitude'];
+        $smart_ip_session = smart_ip_session_get('smart_ip');
+        if (isset($smart_ip_session['location']['latitude']) &&
+          isset($smart_ip_session['location']['longitude'])
+        ) {
+          $coordinates['latitude'] = (float) $smart_ip_session['location']['latitude'];
+          $coordinates['longitude'] = (float) $smart_ip_session['location']['longitude'];
         }
       }
       elseif (module_exists('geoip')) {

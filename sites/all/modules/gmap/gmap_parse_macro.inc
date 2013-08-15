@@ -52,7 +52,7 @@ function _gmap_str2coord($str) {
   $points = array();
   foreach ($arr as $pt) {
     list($lat, $lon) = explode(',', $pt);
-    $points[] = array((float)trim($lat), (float)trim($lon));
+    $points[] = array((float) trim($lat), (float) trim($lon));
   }
   return $points;
 }
@@ -64,10 +64,10 @@ function _gmap_parse_macro($instring, $ver = 2) {
   $def = gmap_defaults();
 
   // Remove leading and trailing tags
-  if (substr(trim($instring), -1)==']') {
+  if (substr(trim($instring), -1) == ']') {
     $instring = substr(trim($instring), 0, -1);
   }
-  if (substr($instring, 0, 5)=='[gmap') {
+  if (substr($instring, 0, 5) == '[gmap') {
     $instring = substr($instring, 6);
   }
 
@@ -78,7 +78,7 @@ function _gmap_parse_macro($instring, $ver = 2) {
     $offset = strpos($row, '=');
     if ($offset !== FALSE) {
       $k = trim(substr($row, 0, $offset));
-      $r = trim(substr($row, $offset+1));
+      $r = trim(substr($row, $offset + 1));
       if (in_array($k, $multiple)) {
         // Things that can appear multiple times
         if (!isset($m[$k])) {
@@ -127,8 +127,12 @@ function _gmap_parse_macro($instring, $ver = 2) {
   }
 
   // Merge points and markers
-  if (!isset($m['points']) || !is_array($m['points'])) $m['points'] = array();
-  if (!isset($m['markers']) || !is_array($m['markers'])) $m['markers'] = array();
+  if (!isset($m['points']) || !is_array($m['points'])) {
+    $m['points'] = array();
+  }
+  if (!isset($m['markers']) || !is_array($m['markers'])) {
+    $m['markers'] = array();
+  }
   $m['markers-temp'] = array_merge($m['points'], $m['markers']);
   unset($m['points']);
   unset($m['markers']);
@@ -141,11 +145,13 @@ function _gmap_parse_macro($instring, $ver = 2) {
       if ($cp !== FALSE) {
         $stylestr = substr($shape, 0, $cp);
         $s['style'] = _gmap_parse_style($stylestr);
-        $shape = substr($shape, $cp+1);
+        $shape = substr($shape, $cp + 1);
       }
       $tmp = explode('+', $shape);
       $s['radius'] = $tmp[1] ? $tmp[1] : 100;
-      if (isset($tmp[2]) && $tmp[2]) $s['numpoints'] = trim($tmp[2]);
+      if (isset($tmp[2]) && $tmp[2]) {
+        $s['numpoints'] = trim($tmp[2]);
+      }
       $tmp = _gmap_str2coord($tmp[0]);
       $s['center'] = $tmp[0];
       $m['shapes'][] = $s;
@@ -154,17 +160,23 @@ function _gmap_parse_macro($instring, $ver = 2) {
   }
   // Fixup legacy lines.
   if (isset($m['line1'])) {
-    if (!isset($m['line'])) $m['line'] = array();
+    if (!isset($m['line'])) {
+      $m['line'] = array();
+    }
     $m['line'][] = $def['line_colors'][0] . ':' . $m['line1'];
     unset($m['line1']);
   }
   if (isset($m['line2'])) {
-    if (!isset($m['line'])) $m['line'] = array();
+    if (!isset($m['line'])) {
+      $m['line'] = array();
+    }
     $m['line'][] = $def['line_colors'][1] . ':' . $m['line3'];
     unset($m['line2']);
   }
   if (isset($m['line3'])) {
-    if (!isset($m['line'])) $m['line'] = array();
+    if (!isset($m['line'])) {
+      $m['line'] = array();
+    }
     $m['line'][] = $def['line_colors'][2] . ':' . $m['line3'];
     unset($m['line3']);
   }
@@ -176,7 +188,7 @@ function _gmap_parse_macro($instring, $ver = 2) {
       if ($cp != FALSE) {
         $stylestr = substr($shape, 0, $cp);
         $s['style'] = _gmap_parse_style($stylestr);
-        $shape = substr($shape, $cp+1);
+        $shape = substr($shape, $cp + 1);
       }
       $s['points'] = _gmap_str2coord($shape);
       $m['shapes'][] = $s;
@@ -190,11 +202,11 @@ function _gmap_parse_macro($instring, $ver = 2) {
       if ($cp !== FALSE) {
         $stylestr = substr($shape, 0, $cp);
         $s['style'] = _gmap_parse_style($stylestr);
-        $shape = substr($shape, $cp+1);
+        $shape = substr($shape, $cp + 1);
       }
       $tmp = explode('+', $shape);
       if ($tmp[2]) {
-        $s['numpoints'] = (int)trim($tmp[2]);
+        $s['numpoints'] = (int) trim($tmp[2]);
         $tmp = array_slice($tmp, 0, 2);
       }
       $shape = implode('+', $tmp);
@@ -212,12 +224,15 @@ function _gmap_parse_macro($instring, $ver = 2) {
       if ($cp !== FALSE) {
         $stylestr = substr($shape, 0, $cp);
         $s['style'] = _gmap_parse_style($stylestr);
-        $shape = substr($shape, $cp+1);
+        $shape = substr($shape, $cp + 1);
       }
       $s['points'] = _gmap_str2coord($shape);
       $m['shapes'][] = $s;
     }
     unset($m['polygon']);
+  }
+  elseif (isset($m['polygon']) && !is_array($m['polygon'])) {
+    $value = array($m['polygon']);
   }
 
   // Version 1 -> 2 conversion
@@ -276,7 +291,7 @@ function _gmap_parse_macro($instring, $ver = 2) {
   // notype also controls mtc.
   if (isset($m['behavior']['notype'])) {
     if ($m['behavior']['notype']) {
-      $m['mtc']= 'none';
+      $m['mtc'] = 'none';
     }
     unset($m['behavior']['notype']);
   }

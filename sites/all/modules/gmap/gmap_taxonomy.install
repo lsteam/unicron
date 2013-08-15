@@ -28,7 +28,7 @@ function gmap_taxonomy_requirements($phase) {
 function gmap_taxonomy_schema() {
   $schema['gmap_taxonomy_term'] = array(
     'fields' => array(
-      'tid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'marker' => array('type' => 'varchar', 'length' => 32),
     ),
     'primary key' => array('tid'),
@@ -36,9 +36,9 @@ function gmap_taxonomy_schema() {
 
   $schema['gmap_taxonomy_node'] = array(
     'fields' => array(
-      'nid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
 //      'vid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'tid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'marker' => array('type' => 'varchar', 'length' => 32),
     ),
     'primary key' => array('nid'),
@@ -70,9 +70,9 @@ function gmap_taxonomy_update_6001() {
 
   $schema['gmap_taxonomy_node'] = array(
     'fields' => array(
-      'nid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'vid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'tid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'tid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'marker' => array('type' => 'varchar', 'length' => 32),
     ),
     'primary key' => array('vid'),

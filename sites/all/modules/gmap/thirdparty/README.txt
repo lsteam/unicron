@@ -6,10 +6,11 @@ Place downloaded third party code in this folder if instructed to by GMap.
 
 Clusterer2.js
 ------------
-Marker clusterer addon by Jef Poskanzer
+Marker clusterer addon by Jef Poskanzer, adpated by Etienne Châtaignier to work with Google Map API V3
 This was the original "marker clustering" solution for viewing large sets of markers without
 loss of speed.
-Website: http://www.acme.com/javascript/#Clusterer
+Download at https://github.com/melicerte/clusterer
+Original plugin Website: http://www.acme.com/javascript/#Clusterer
 Save the results of the [View source code.] link.
 Tested version at: http://www.acme.com/javascript/Clusterer2.js
 

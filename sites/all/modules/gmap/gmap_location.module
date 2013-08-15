@@ -176,35 +176,36 @@ function gmap_location_user_page() {
   }
 
 // @@@ Move to gmap_addons.
-/*
-  if (user_access('view user location details') && function_exists('buddylist_get_buddies') && count($locationbyuser)>0) {
-    //create lines for buddies
-    if (!isset($thismap['shapes'])) {
-      $thismap['shapes']=array();
-    }
-    ksort($locationbyuser);
-    foreach ($locationbyuser as $key => $value) {
-      $buddies= buddylist_get_buddies($key);
-      foreach ($buddies as $bkey => $bvalue) {
-        if ($bkey > $key && isset($locationbyuser[$bkey])) {
-          $thismap['shape'][] = array(
-            'points' => array($locationbyuser[$key], $locationbyuser[$bkey]),
-            'type' => 'line'
-          );
+  /*
+    if (user_access('view user location details') && function_exists('buddylist_get_buddies') && count($locationbyuser)>0) {
+      //create lines for buddies
+      if (!isset($thismap['shapes'])) {
+        $thismap['shapes']=array();
+      }
+      ksort($locationbyuser);
+      foreach ($locationbyuser as $key => $value) {
+        $buddies= buddylist_get_buddies($key);
+        foreach ($buddies as $bkey => $bvalue) {
+          if ($bkey > $key && isset($locationbyuser[$bkey])) {
+            $thismap['shape'][] = array(
+              'points' => array($locationbyuser[$key], $locationbyuser[$bkey]),
+              'type' => 'line'
+            );
+          }
         }
       }
     }
-  }
-*/
+  */
   $element = array(
     '#type' => 'gmap',
     '#gmap_settings' => $map,
   );
 
   return theme('gmap_location_user_page', array(
-    'header' => $usermap['header'],
-    'map' => drupal_render($element),
-    'footer' => $usermap['footer'])
+      'header' => $usermap['header'],
+      'map' => drupal_render($element),
+      'footer' => $usermap['footer']
+    )
   );
 }
 
@@ -370,10 +371,11 @@ function gmap_location_node_page($nid = NULL) {
     '#gmap_settings' => $map,
   );
   return theme('gmap_location_node_page', array(
-    'count' => $count,
-    'header' => $nodemap['header'],
-    'map' => drupal_render($element),
-    'footer' => $nodemap['footer'])
+      'count' => $count,
+      'header' => $nodemap['header'],
+      'map' => drupal_render($element),
+      'footer' => $nodemap['footer']
+    )
   );
 }
 
@@ -383,7 +385,13 @@ function gmap_location_node_page($nid = NULL) {
 function gmap_location_node_point($node, $opt) {
   $output = '';
   // @@@ Make sure $node->type is an ok thing to do here..
-  echo theme(array("gmap_location_infowindow_node__$node->type", 'gmap_location_infowindow_node'), array('node' => $node, 'opt' => $opt));
+  echo theme(array(
+    "gmap_location_infowindow_node__$node->type",
+    'gmap_location_infowindow_node'
+  ), array(
+    'node' => $node,
+    'opt' => $opt
+  ));
   // exit();
   return;
 }
@@ -679,12 +687,12 @@ function gmap_location_block_save($delta = '', $edit = array()) {
 function gmap_location_block_view($delta = '') {
   switch ($delta) {
     case 0:
-      if (arg(0)=='node' && is_numeric(arg(1))) {
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
         return _gmap_location_block_view(arg(1));
       }
       break;
     case 1:
-      if (arg(0)=='node' && is_numeric(arg(1))) {
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
         return _gmap_location_author_block_view(arg(1));
       }
       break;
@@ -720,7 +728,7 @@ function _gmap_location_block_view($nid) {
           'latitude' => $loc['latitude'],
           'longitude' => $loc['longitude'],
           'markername' => $markername,
-          'offset' => $count-1,
+          'offset' => $count - 1,
           'opts' => array('title' => $markertitle),
         );
       }
@@ -768,7 +776,7 @@ function _gmap_location_author_block_view($nid) {
         'latitude' => $loc['latitude'],
         'longitude' => $loc['longitude'],
         'markername' => $markername,
-        'offset' => $count-1,
+        'offset' => $count - 1,
         'opts' => array('title' => $markertitle),
       );
     }

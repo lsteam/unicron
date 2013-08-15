@@ -22,7 +22,7 @@ function gmap_macro_builder_help($path, $arg) {
  */
 function gmap_macro_builder_permission() {
   return array(
-    'create gmap macro' =>  array(
+    'create gmap macro' => array(
       'title' => t('Create gmap macro'),
       'description' => t('Allows user to create a gmap macro for insertion into content.'),
     )

@@ -22,64 +22,78 @@ function _gmap_get_icondata() {
     'transparent',
   );
 
-  $markerdir = variable_get('gmap_markerfiles', drupal_get_path('module', 'gmap') . '/markers');
+  $markerdirs = variable_get('gmap_markerfiles', array(drupal_get_path('module', 'gmap') . '/markers'));
+  $markercustomdir = variable_get('gmap_marker_custom_dir', NULL);
+  if ($markercustomdir) {
+    $markerdirs[] = $markercustomdir;
+  }
+  if (module_exists('libraries')) {
+    $markercustomdir = libraries_get_path('gmap_markers');
+    if ($markercustomdir) {
+      $markerdirs[] = $markercustomdir;
+    }
+  }
 
   // The following routines are designed to be easy to comprehend, not fast.
   // This whole process gets cached.
 
   // Get the ini files.
-  $inifiles = file_scan_directory($markerdir, '/.*\.ini$/');
-  // Parse the ini files and store by path
   $inis = array();
-  foreach ($inifiles as $file) {
-    $path = substr($file->uri, strlen($markerdir), -strlen($file->filename));
-    if (!isset($inis[$path])) {
-      $inis[$path] = array();
-    }
-    $inis[$path][] = parse_ini_file($file->uri, TRUE);
-  }
-  unset($inifiles);
-
-  // Per directory..
-  foreach ($inis as $path => $path_inis) {
-    $icons[$path] = array(
-      'tempf' => array(),
-      'f' => array(),
-      'w' => array(),
-      'h' => array(),
-      'i' => array(), // Sets of sets
-    );
-
-    // Part 1: Collect image names
-    $filenames = array();
-    foreach ($path_inis as $ini) {
-      foreach ($ini as $k => $v) {
-        // Is this definition for an icon? (anything with a dot is a file)
-        if (strpos($k, '.') !== FALSE) {
-          // Add the icon name.
-          $filenames[$k] = TRUE;
+  if (is_array($markerdirs)) {
+    foreach ($markerdirs as $markerdir) {
+      $inifiles = file_scan_directory($markerdir, '/.*\.ini$/');
+      // Parse the ini files and store by path.
+      foreach ($inifiles as $file) {
+        $path = substr($file->uri, 0, -strlen($file->filename));
+        if (!isset($inis[$path])) {
+          $inis[$path] = array();
         }
-        else {
-          // Shadow / alternate search
-          foreach ($imagetypes as $check) {
-            if (isset($v[$check])) {
-              $filenames[$v[$check]] = TRUE;
-            }
-          }
-          // A sequence is a list of image names.
-          if (isset($v['sequence'])) {
-            foreach (explode(',', $v['sequence']) as $f) {
-              $filenames[trim($f)] = TRUE;
-            }
-          }
-        }
+        $inis[$path][] = parse_ini_file($file->uri, TRUE);
       }
-    }
-    $icons[$path]['tempf'] = $filenames;
-  }
-  unset($filenames);
+      unset($inifiles);
 
-  // Part 2: Assign ids, get width and height
+      // Per directory.
+      foreach ($inis as $path => $path_inis) {
+        $icons[$path] = array(
+          'tempf' => array(),
+          'f' => array(),
+          'w' => array(),
+          'h' => array(),
+          'i' => array(), // Sets of sets.
+        );
+
+        // Part 1: Collect image names.
+        $filenames = array();
+        foreach ($path_inis as $ini) {
+          foreach ($ini as $k => $v) {
+            // Is this definition for an icon? (Anything with a dot is a file.)
+            if (strpos($k, '.') !== FALSE) {
+              // Add the icon name.
+              $filenames[$k] = TRUE;
+            }
+            else {
+              // Shadow / alternate search.
+              foreach ($imagetypes as $check) {
+                if (isset($v[$check])) {
+                  $filenames[$v[$check]] = TRUE;
+                }
+              }
+              // A sequence is a list of image names.
+              if (isset($v['sequence'])) {
+                foreach (explode(',', $v['sequence']) as $f) {
+                  $filenames[trim($f)] = TRUE;
+                }
+              }
+            }
+          }
+        }
+        $icons[$path]['tempf'] = $filenames;
+      }
+      unset($filenames);
+    }
+  }
+
+  // Part 2: Assign ids, get width and height.
   foreach ($icons as $path => $v) {
     $counter = 0;
     foreach ($icons[$path]['tempf'] as $filename => $fv) {
@@ -87,7 +101,7 @@ function _gmap_get_icondata() {
       if (empty($filename)) {
         continue;
       }
-      $size = getimagesize($markerdir . $path . $filename);
+      $size = getimagesize($path . $filename);
       $icons[$path]['f'][$counter] = $filename;
       $icons[$path]['w'][$counter] = $size[0];
       $icons[$path]['h'][$counter] = $size[1];
@@ -120,7 +134,7 @@ function _gmap_get_icondata() {
             $ini[$k][$t] = $icons[$path]['tempf'][$ini[$k][$t]];
           }
         }
-        // Setup key for compression
+        // Setup key for compression.
         $ini[$k]['key'] = $k;
       }
 
@@ -163,27 +177,36 @@ function _gmap_get_icondata() {
  */
 function _gmap_compress_icon_def($iconset) {
   $order = array(
-    'key', 'name', 'sequence', 'anchorX', 'anchorY',
-    'infoX', 'infoY', 'shadow', 'printImage', 'mozPrintImage',
-    'printShadow', 'transparent',
+    'key',
+    'name',
+    'sequence',
+    'anchorX',
+    'anchorY',
+    'infoX',
+    'infoY',
+    'shadow',
+    'printImage',
+    'mozPrintImage',
+    'printShadow',
+    'transparent',
   );
   $ints = array(3 => TRUE, 4 => TRUE, 5 => TRUE, 6 => TRUE);
-  $nulls = array('', '', array(), 0, 0, 0, 0, '', '', '', '', '', );
+  $nulls = array('', '', array(), 0, 0, 0, 0, '', '', '', '', '',);
 
   $a = array();
-  for ($c0 = 0; $c0<count($order); $c0++) {
+  for ($c0 = 0; $c0 < count($order); $c0++) {
     $a[$c0] = array();
-    for ($c1=0; $c1<count($iconset); $c1++) {
+    for ($c1 = 0; $c1 < count($iconset); $c1++) {
       $temp = isset($iconset[$c1][$order[$c0]]) ? $iconset[$c1][$order[$c0]] : $nulls[$c0];
       // Ensure that numeric quantities are encoded as ints, not strings.
       if (isset($ints[$c0])) {
-        $temp = (int)$temp;
+        $temp = (int) $temp;
       }
       $a[$c0][$c1] = $temp;
     }
     _gmap_compress_array($a[$c0]);
   }
-  for ($c0--;$c0>=0;$c0--) {
+  for ($c0--; $c0 >= 0; $c0--) {
     if ($a[$c0] === array($nulls[$c0])) {
       unset($a[$c0]);
     }
@@ -203,8 +226,8 @@ function _gmap_compress_array(&$arr) {
   }
   $c = count($arr) - 1;
   // Walk backwards and unset duplicates...
-  for ($cval = $arr[$c]; $c>0; $c--) {
-    if ($arr[$c-1]==$cval) {
+  for ($cval = $arr[$c]; $c > 0; $c--) {
+    if ($arr[$c - 1] == $cval) {
       unset($arr[$c]);
     }
     else {
@@ -215,35 +238,49 @@ function _gmap_compress_array(&$arr) {
 }
 
 function _gmap_get_marker_titles() {
-  $markerdir = variable_get('gmap_markerfiles', drupal_get_path('module', 'gmap') . '/markers');
+  $markerdirs = variable_get('gmap_markerfiles', array(drupal_get_path('module', 'gmap') . '/markers'));
+  $markercustomdir = variable_get('gmap_marker_custom_dir', NULL);
+  if ($markercustomdir) {
+    $markerdirs[] = $markercustomdir;
+  }
+  if (module_exists('libraries')) {
+    $markercustomdir = libraries_get_path('gmap_markers');
+    if ($markercustomdir) {
+      $markerdirs[] = $markercustomdir;
+    }
+  }
 
   // The following routines are designed to be easy to comprehend, not fast.
   // This whole process gets cached.
 
   // Get the ini files.
-  $inifiles = file_scan_directory($markerdir, '/.*\.ini$/');
-  // Parse the ini files and store by path
-  $inis = array();
-  foreach ($inifiles as $file) {
-    $data = parse_ini_file($file->uri, TRUE);
-    if (isset($data['defaults'])) {
-      // Ignore defaults
-      unset($data['defaults']);
-    }
-    foreach ($data as $k => $v) {
-      if (strpos($k, '.') !== FALSE) {
-        // Ignore files
-        unset($data[$k]);
-      }
-    }
-    $inis[] = $data;
-  }
-  unset($inifiles);
-
   $titles = array();
-  foreach ($inis as $ini => $inidata) {
-    foreach ($inidata as $k => $v) {
-      $titles[$k] = t($inis[$ini][$k]['name']);
+  if (is_array($markerdirs)) {
+    foreach ($markerdirs as $markerdir) {
+      $inifiles = file_scan_directory($markerdir, '/.*\.ini$/');
+      // Parse the ini files and store by path.
+      $inis = array();
+      foreach ($inifiles as $file) {
+        $data = parse_ini_file($file->uri, TRUE);
+        if (isset($data['defaults'])) {
+          // Ignore defaults.
+          unset($data['defaults']);
+        }
+        foreach ($data as $k => $v) {
+          if (strpos($k, '.') !== FALSE) {
+            // Ignore files.
+            unset($data[$k]);
+          }
+        }
+        $inis[] = $data;
+      }
+      unset($inifiles);
+
+      foreach ($inis as $ini => $inidata) {
+        foreach ($inidata as $k => $v) {
+          $titles[$k] = t($inis[$ini][$k]['name']);
+        }
+      }
     }
   }
   return $titles;

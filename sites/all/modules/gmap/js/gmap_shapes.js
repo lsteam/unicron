@@ -1,159 +1,239 @@
-
 /**
  * @file
  * GMap Shapes
  * GMap API version / Base case
+ *
+ * @NOTE This code now depends in various places, on the google.maps.geometry library.
+ * 1. points encoding/decoding
+ * 2. spherical distance calculations
+ * If this library isn't loaded then YOU WILL GET SILENT FAILURE.  There should be some kind
+ * of user warning here, if the geometry library hasn't been loaded. I am not sure what the
+ * gmaps convention for such reporting is?  is a console.debug acceptable?
+ * Note that you can specify to add the geometry library at the php side of things using hook_gmap()
  */
 
-/*global jQuery, Drupal, GEvent, GLatLng, GPolygon, GPolyline */
+/*global $, Drupal, google.maps, !google.maps.geometry! */
+(function ($) {
 
-Drupal.gmap.addHandler('gmap', function (elem) {
-  var obj = this;
-/*
-  obj.bind('init',function() {
-    if (obj.vars.behavior.autozoom) {
-      obj.bounds = new GLatLngBounds(new GLatLng(obj.vars.latitude,obj.vars.longitude),new GLatLng(obj.vars.latitude,obj.vars.longitude));
-    }
-  });
-*/
-  obj.bind('prepareshape', function (shape) {
-    var pa, cargs, style;
-    //var m = new GMarker(new GLatLng(marker.latitude,marker.longitude),marker.opts);
-    pa = []; // point array (array of GLatLng-objects)
-    var fillstyle = true;
-    if (shape.type === 'circle') {
-      pa = obj.poly.calcPolyPoints(new GLatLng(shape.center[0], shape.center[1]), shape.radius * 1000, shape.numpoints);
-    }
-    else if (shape.type === 'rpolygon') {
-      shape.center = new GLatLng(shape.center[0], shape.center[1]);
-      shape.point2 = new GLatLng(shape.point2[0], shape.point2[1]);
-      var radius = shape.center.distanceFrom(shape.point2);
-      pa = obj.poly.calcPolyPoints(shape.center, radius, shape.numpoints);
-    }
-    else if (shape.type === 'polygon') {
-      var coords = new Array();
-      jQuery.each(shape.points, function (i, n) {
-        coords.push(new google.maps.LatLng(n[0], n[1]));
-      });
-    }
-    else if (shape.type === 'line') {
-      var coords = new Array();
-      jQuery.each(shape.points, function (i, n) {
-        coords.push(new google.maps.LatLng(n[0], n[1]));
-      });
-    }
-    cargs = [pa];
+    Drupal.gmap.addHandler('gmap', function (elem) {
+        var obj = this;
 
-    // Style normalization
-    if (fillstyle) {
-      style = obj.vars.styles.poly_default.slice();
-    }
-    else {
-      style = obj.vars.styles.line_default.slice();
-    }
-    if (shape.style) {
-      if (typeof shape.style === 'string') {
-        if (obj.vars.styles[shape.style]) {
-          style = obj.vars.styles[shape.style].slice();
-        }
-      }
-      else {
-        style = shape.style.slice();
-      }
-    }
-    style[0] = '#' + style[0];
-    style[1] = Number(style[1]);
-    style[2] = style[2] / 100;
-    if (fillstyle) {
-      style[3] = '#' + style[3];
-      style[4] = style[4] / 100;
-    }
+        // prepare and build a google.maps shape object
+        obj.bind('prepareshape', function (shape) {
+            var style;
+            var fillstyle = false; // does this shape have a fill option?
+            var cargs = {};
+            var pa = []; // point array (array of LatLng-objects)
 
-    if (shape.type == 'encoded_line') {
-      shape.color = style[0];
-      shape.weight = style[1];
-      shape.opacity = style[2];
-    }
-    else if (shape.type == 'encoded_polygon') {
-      jQuery.each(shape.polylines, function(i, polyline) {
-        polyline.color = style[0];
-        polyline.weight = style[1];
-        polyline.opacity = style[2];
-      });
-      shape.fill = true;
-      shape.color = style[3];
-      shape.opacity = style[4];
-      shape.outline = true;
-    }
+            // positioning determination
+            switch (shape.type) {
+                case 'circle':
+                    if (shape.center.length) {
+                        shape.center = new google.maps.LatLng(shape.center[0], shape.center[1]);
+                    } // otherwise it should be a LatLng already
+                    if (shape.opts.radius) {
+                        shape.radius = shape.opts.radius;
+                    }
+                    else if (shape.point2) {
+                        if (shape.point2.length) {
+                            shape.point2 = new google.maps.LatLng(shape.point2[0], shape.point2[1]);
+                        } // otherwise it should be a LatLng already
+                        shape.radius = (google.maps.geometry) ? google.maps.geometry.spherical.computeDistanceBetween(shape.center, shape.point2) : 250;
+                    } // if you didn't pass a shape.point2, then you should have passed a shape.radius in meters
+                    break;
 
-    jQuery.each(style, function (i, n) {
-      cargs.push(n);
+                case 'rpolygon': /* this is deprecated as we have circle now.  It is left for backwards compatibility */
+                    if (shape.center.length) {
+                        shape.center = new google.maps.LatLng(shape.center[0], shape.center[1]);
+                    } // otherwise it should be a LatLng already
+                    if (shape.point2.length) {
+                        shape.point2 = new google.maps.LatLng(shape.point2[0], shape.point2[1]);
+                    } // otherwise it should be a LatLng already
+                    shape.radius = (google.maps.geometry) ? google.maps.geometry.spherical.computeDistanceBetween(shape.center, shape.point2) : 250;
+                    if (!shape.numpoints) {
+                        shape.numpoints = 20;
+                    }
+                    pa = obj.poly.calcPolyPoints(shape.center, shape.radius, shape.numpoints);
+                    break;
+
+                case 'polygon':
+                    fillstyle = true;
+                case 'line':
+                    if (shape.points) {
+                        $.each(shape.points, function (i, n) {
+                            if (n.length) {
+                                n = new google.maps.LatLng(n[0], n[1]);
+                            } // otherwise it should be a LatLng already
+                            pa.push(n);
+                        });
+                    }
+                    break;
+
+                case 'encoded_polygon':
+                    fillstyle = true;
+                case 'encoded_line':
+                    pa = ( google.maps.geometry ) ? google.maps.geometry.encoding.decodePath(shape.path) : []; // this trinary prevents errors if the google.maps gemoetry library wasn't loaded
+                    break;
+            }
+
+            /**
+             * the shapes.style processing is a leftover from the gmaps v2
+             * code, and the shapes configuration system, from the php side
+             * of things.
+             */
+            if (shape.style) {
+                if (typeof shape.style === 'string') { // the style is an index for one of our vars.styles
+                    if (obj.vars.styles[shape.style]) {
+                        style = obj.vars.styles[shape.style].slice(); // copy the array
+                    }
+                }
+                else {
+                    style = shape.style.slice(); // copy that array
+                }
+                style[0] = '#' + style[0]; // color
+                style[1] = Number(style[1]); // strokewidth
+                style[2] = style[2] / 100; // strokeOpacity
+                if (fillstyle) {
+                    style[3] = '#' + style[3]; // fill colour
+                    style[4] = style[4] / 100; // fill opacity
+                }
+
+                if (shape.type == 'encoded_line') {
+                    shape.color = style[0];
+                    shape.weight = style[1];
+                    shape.opacity = style[2];
+                }
+                else if (shape.type == 'encoded_polygon') {
+                    if (shape.polylines) {
+                        $.each(shape.polylines, function (i, polyline) {
+                            polyline.color = style[0];
+                            polyline.weight = style[1];
+                            polyline.opacity = style[2];
+                        });
+                    }
+                    shape.fill = true;
+                    shape.color = style[3];
+                    shape.opacity = style[4];
+                    shape.outline = true;
+                }
+            }
+
+            // add any options to the configuration
+            if (shape.opts) {
+                $.extend(cargs, shape.opts);
+            }
+
+            /**
+             * In general: (inherited concepts.  If you change these, make sure you check them on the php side of things)
+             *  shape.color : color used for line and fill
+             *  shape.weight : stroke weight in pixels
+             *  shape.opacity : fill/stroke opacity in decimal value (0< opactity <1)
+             *  shape.fill : boolean direction to fill the shape
+             */
+            // build the shape with options
+            switch (shape.type) {
+                case 'circle':
+                    cargs = {center: shape.center, radius: shape.radius, strokeColor: shape.color }; // required arges
+                    if (shape.color) {
+                        cargs.strokeColor = shape.color;
+                    } // outline color
+                    if (shape.weight) {
+                        cargs.strokeWeight = shape.weight;
+                    } // boundary line weight
+                    if (shape.fill) {
+                        cargs.fillColor = shape.color;
+                    } // shape fill color
+                    if (shape.opacity) {
+                        cargs.strokeOpacity = shape.opacity;
+                        cargs.fillOpacity = shape.opacity;
+                    } // shape opacity
+                    shape.shape = new google.maps.Circle(cargs);
+                    break;
+                case 'rpolygon':
+                case 'encoded_polygon':
+                case 'polygon':
+                    cargs = { path: pa }; // required args
+                    if (shape.outline) {
+                        cargs.strokeColor = shape.color;
+                    }
+                    if (shape.weight) {
+                        cargs.strokeWeight = shape.weight;
+                    }
+                    if (shape.fill) {
+                        cargs.fillColor = shape.color;
+                    }
+                    if (shape.opacity) {
+                        cargs.strokeOpacity = shape.opacity;
+                        cargs.fillOpacity = shape.opacity;
+                    }
+                    shape.shape = new google.maps.Polygon(cargs);
+                    break;
+                case 'line':
+                case 'encoded_line':
+                    cargs = { path: pa }; // required args
+                    if (shape.color) {
+                        cargs.strokeColor = shape.color;
+                    }
+                    if (shape.weight) {
+                        cargs.strokeWeight = shape.weight;
+                    }
+                    if (shape.opacity) {
+                        cargs.strokeOpacity = shape.opacity;
+                    }
+                    shape.shape = new google.maps.Polyline(cargs);
+                    break;
+            }
+        });
+
+        // add a prepared shape to the map
+        obj.bind('addshape', function (shape) {
+            if (!obj.vars.shapes) {
+                obj.vars.shapes = [];
+            }
+            obj.vars.shapes.push(shape);
+            shape.shape.setMap(obj.map);
+
+            if (obj.vars.behavior.clickableshapes) {
+                google.maps.event.addListener(shape.shape, 'click', function () {
+                    obj.change('clickshape', -1, shape);
+                });
+            }
+            if (obj.vars.behavior.shapesextraevents) {
+                google.maps.event.addListener(shape.shape, 'dblclick', function () {
+                    obj.change('dblclickshape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'mousedown', function () {
+                    obj.change('mousedownshape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'mouseout', function () {
+                    obj.change('mouseoutshape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'mouseover', function () {
+                    obj.change('mouseovershape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'mouseup', function () {
+                    obj.change('mouseupshape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'mousemove', function () {
+                    obj.change('mousemoveshape', -1, shape);
+                });
+                google.maps.event.addListener(shape.shape, 'rightclick', function () {
+                    obj.change('rightclickshape', -1, shape);
+                });
+            }
+        });
+
+        obj.bind('delshape', function (shape) {
+            shape.shape.setMap(null);
+        });
+
+        obj.bind('clearshapes', function () {
+            if (obj.vars.shapes) {
+                $.each(obj.vars.shapes, function (i, n) {
+                    obj.change('delshape', -1, n);
+                });
+            }
+        });
     });
-    if (shape.opts) {
-      cargs.push(shape.opts);
-    }
-    var Pg = function (args) {
-      GPolygon.apply(this, args);
-    };
-    Pg.prototype = new GPolygon();
-    var Pl = function (args) {
-      GPolyline.apply(this, args);
-    };
-    Pl.prototype = new GPolyline();
 
-    var polyObject = {
-      path: coords,
-      strokeColor: style[0],
-      strokeWeight: style[1],
-      strokeOpacity: style[2],
-      fillColor: style[3],
-      fillOpacity: style[4],
-    }
-
-    switch (shape.type) {
-      case 'circle':
-      case 'polygon':
-      case 'rpolygon':
-        shape.shape = new google.maps.Polygon(polyObject);
-        break;
-      case 'line':
-        shape.shape = new google.maps.Polyline(polyObject);
-        break;
-      case 'encoded_line':
-        shape.shape = GPolyline.fromEncoded(shape);
-        break;
-      case 'encoded_polygon':
-        shape.shape = GPolygon.fromEncoded(shape);
-        break;
-    }
-  });
-
-  obj.bind('addshape', function (shape) {
-    if ( !obj.map.shapes ) obj.map.shapes = new Array();
-    shape.shape.setMap(obj.map);
-    //obj.map.shapes.push( shape.shape );
-
-    /*if (obj.vars.behavior.clickableshapes) {
-      GEvent.addListener(shape.shape, 'click', function () {
-        obj.change('clickshape', -1, shape);
-      });
-    }*/
-
-  });
-
-  obj.bind('delshape', function (shape) {
-    obj.map.removeOverlay(shape.shape);
-  });
-
-  obj.bind('clearshapes', function () {
-    if (obj.vars.shapes) {
-      jQuery.each(obj.vars.shapes, function (i, n) {
-        obj.change('delshape', -1, n);
-      });
-    }
-  });
-});
-
-/**
-This is a comment
-*/
+})(jQuery);

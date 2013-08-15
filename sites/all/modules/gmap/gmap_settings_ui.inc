@@ -36,8 +36,8 @@ function gmap_admin_settings($form, &$form_state) {
   $form['initialization']['gmap_api_key']['#title'] = t('Google Maps API Key');
   $form['initialization']['gmap_api_key']['#description'] = t('This key is currently not required by Google.  Entering a Key will allow you to track map usage in Google.  If you want to use an API key, you can get one at <a href="http://code.google.com/apis/maps/signup.html">Google Map API website</a>.');
 
-if (file_default_scheme() != 'public') {
-  $form['initialization']['gmap_private_markerfile'] = array(
+  if (file_default_scheme() != 'public') {
+    $form['initialization']['gmap_private_markerfile'] = array(
       '#type' => 'textfield',
       '#title' => t('Path to gmap_markers.js'),
       '#description' => t('You are using the <em>Private</em> download method. For markers to work properly. you must press the <em>Regenerate</em> button, manually copy js/gmap_markers.js from the files directory to a location accessible by the webserver, and enter the file path relative to the Drupal root (including the filename) in this field. Example: <em>sites/default/misc/gmap_markers.js</em>'),
@@ -211,7 +211,6 @@ if (file_default_scheme() != 'public') {
         '#type' => 'checkbox',
         '#title' => $layer['title'],
         '#parents' => array('gmap_default', 'baselayers', $key),
-
         '#description' => $layer['help'],
         '#default_value' => isset($defaults['baselayers'][$key]) ? $defaults['baselayers'][$key] : $layer['default'],
       );
@@ -293,8 +292,7 @@ if (file_default_scheme() != 'public') {
     $opts['clustermarker'] = array();
   }
 
-  $opts['gmap'] = array_merge(array(
-    // None.
+  $opts['gmap'] = array_merge(array(// None.
   ), $opts['gmap']);
 
   $opts['gmarkermanager'] = array_merge(array(
@@ -313,7 +311,7 @@ if (file_default_scheme() != 'public') {
     'markerMinZoom' => 4,
     'markerMaxZoom' => 0,
   ), $opts['markermanager']);
-  
+
   $opts['markerclusterer'] = array_merge(array(
     'filename' => 'markerclusterer_packed.js',
     'gridSize' => 60,
@@ -440,7 +438,7 @@ if (file_default_scheme() != 'public') {
   $form['gmap_markermanager']['markerclusterer']['filename'] = array(
     '#type' => 'textfield',
     '#title' => t('Filename'),
-    '#description' => t('Name of downloaded file in the thirdparty folder. Default: %default', array('%default' => 'markerclusterer_packed.js')),
+    '#description' => t('Name of downloaded file in the thirdparty folder. Default: %default', array('%default' => 'markerclusterer.js')),
     '#default_value' => $opts['markerclusterer']['filename'],
   );
   $form['gmap_markermanager']['markerclusterer']['gridSize'] = array(
@@ -464,7 +462,7 @@ if (file_default_scheme() != 'public') {
   $form['gmap_markermanager']['markerclusterer']['styles'] = array(
     '#type' => 'textarea',
     '#title' => t('MarkerClusterer styles in JSON. Read description!'),
-    '#description' => t('Hack to get MarkerClusterer styles injected. Should parse with PHP\'s json_decode(), so put object member names in quotes and escape properly (at least slashes need to be escaped by backslash). Example: [{"height":34,"width":20,"opt_anchor":[10,17],"opt_textColor":"white","url":"\/sites\/all\/themes\/mytheme\/images\/icons\/gmap\/cluster.png"}]'),
+    '#description' => t('Hack to get MarkerClusterer styles injected. Should parse with PHP\'s json_decode(), so put object member names in quotes and escape properly (at least slashes need to be escaped by backslash). Example: [{"height":34,"width":20,"opt_anchor":[10,17],"textColor":"white","url":"\/sites\/all\/themes\/mytheme\/images\/icons\/gmap\/cluster.png"}]'),
     '#default_value' => drupal_json_encode($opts['markerclusterer']['styles']),
     '#cols' => 60,
     '#rows' => 5,
@@ -474,7 +472,7 @@ if (file_default_scheme() != 'public') {
   $form['gmap_markermanager']['clusterer'] = array(
     '#type' => 'fieldset',
     '#title' => t('Clusterer settings'),
-    '#description' => t('Clusterer is a marker manager written by Jef Poskanzer of acme.com. To use, you must place Clusterer2.js (available <a href="@url">here</a>) into the "thirdparty" folder.', array('@url' => 'http://acme.com/javascript/Clusterer2.js')),
+    '#description' => t('Clusterer is a marker manager written by Jef Poskanzer of acme.com and modified by Etienne Châtaignier for compliance with Google Maps API V3. To use, you must place Clusterer2.js (available <a href="@url">here</a>) into the "thirdparty" folder.', array('@url' => 'https://github.com/melicerte/clusterer')),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -580,6 +578,12 @@ if (file_default_scheme() != 'public') {
     '#size' => 4,
     '#maxlength' => 4,
   );
+  $form['gmap_marker_custom_dir'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Custom markers path'),
+    '#description' => t('Fill in your custom markers folder (absolute path).'),
+    '#default_value' => variable_get('gmap_marker_custom_dir', 'no value'),
+  );
 
   // @@@ Convert to element level validation.
   $form['#validate'][] = 'gmap_admin_settings_validate';
@@ -619,10 +623,10 @@ function gmap_admin_settings_validate($form, &$form_state) {
  */
 function gmap_admin_settings_markerclusterer_submit($form, &$form_state) {
   /**
-  * Convert UI JSON text input into nested data structure.
-  * In that way, it is ready to be stored as serialized data and to be output
-  * with drupal_add_js().
-  */
+   * Convert UI JSON text input into nested data structure.
+   * In that way, it is ready to be stored as serialized data and to be output
+   * with drupal_add_js().
+   */
   // for convenience: empty input means empty array
   if ('' == $form_state['values']['gmap_markermanager']['markerclusterer']['styles']) {
     $styles_data = array();

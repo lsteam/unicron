@@ -6,7 +6,22 @@
 class GmapViewsExtendedTestCase extends DrupalWebTestCase {
 
   protected $privileged_user;
-  protected $modules = array('gmap', 'gmap_test_extended', 'views', 'views_ui', 'text','options','geofield','features', 'entityreference', 'addressfield', 'location', 'location_cck', 'geophp', 'entity');
+  protected $modules = array(
+    'gmap',
+    'gmap_test_extended',
+    'views',
+    'views_ui',
+    'text',
+    'options',
+    'geofield',
+    'features',
+    'entityreference',
+    'addressfield',
+    'location',
+    'location_cck',
+    'geophp',
+    'entity'
+  );
 
   public static function getInfo() {
     return array(

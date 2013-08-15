@@ -287,7 +287,7 @@ class LGFATestCase extends DrupalWebTestCase {
       // change error (Notice) to debug message
       return $this->assert('debug', $message, 'Debug', $caller);
     }
-  return parent::error($message, $group, $caller);
+    return parent::error($message, $group, $caller);
   }
 
   public function testGmapSaveConfig() {

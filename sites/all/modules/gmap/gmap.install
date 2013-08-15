@@ -15,6 +15,7 @@ function gmap_uninstall() {
   variable_del('gmap_mm_type');
   variable_del('gmap_load_zoom_plugin');
   variable_del('gmap_markermanager');
+  variable_del('gmap_marker_custom_dir');
   variable_del('gmap_markerfiles');
   variable_del('gmap_node_markers');
   variable_del('gmap_private_markerfile');
