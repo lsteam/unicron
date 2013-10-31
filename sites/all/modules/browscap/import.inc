@@ -70,7 +70,17 @@ function _browscap_import($cron = TRUE) {
     $browscap_data = $browscap_data->data;
 
     // Replace 'true' and 'false' with '1' and '0'
-    $browscap_data = strtr($browscap_data, array("=true\r" => "=1\r", "=false\r" => "=0\r"));
+    $browscap_data = preg_replace(
+      array(
+        "/=\s*true\s*\n/",
+        "/=\s*false\s*\n/",
+      ),
+      array(
+        "=1\n",
+        "=0\n",
+      ),
+      $browscap_data
+    );
 
     // Parse the browscap data as a string
     $browscap_data = parse_ini_string($browscap_data, TRUE, INI_SCANNER_RAW);

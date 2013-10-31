@@ -48,3 +48,10 @@ function browscap_uninstall() {
   variable_del('browscap_enable_automatic_updates');
   variable_del('browscap_automatic_updates_timer');
 }
+
+/**
+ * Drop the unused Browscap 1.x statistics table.
+ */
+function browscap_update_7200() {
+  db_drop_table('browscap_statistics');
+}

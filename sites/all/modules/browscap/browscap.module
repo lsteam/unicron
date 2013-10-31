@@ -8,15 +8,6 @@
 include_once('import.inc');
 
 /**
-* Implements hook_boot().
-*/
-function browscap_boot() {
-  // No functionalities here.
-  // We use this hook to set autmatically the system table bootstrap value
-  // for this module to 1.
-}
-
-/**
  * Implements hook_permission().
  */
 function browscap_permission() {
@@ -33,7 +24,7 @@ function browscap_permission() {
 function browscap_menu() {
   $items['admin/config/system/browscap'] = array(
     'title' => 'Browscap',
-    'description' => 'Configure user agent monitoring and browscap information settings.',
+    'description' => 'View the current browscap data version and configure automatic update settings.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('browscap_settings_form'),
     'access arguments' => array('administer browscap'),
@@ -49,7 +40,7 @@ function browscap_menu() {
 function browscap_help($path, $arg) {
   switch ($path) {
     case 'admin/config/system/browscap':
-      return '<p>' . t('Settings for user agent detection and the log that Browscap will keep about user agents that visit the site. See <a href="@statistics">user agent statistics</a> for the actual information.', array('@statistics' => url('admin/reports/browscap'))) . '</p>';
+      return '<p>' . t('View the current browscap data version and configure automatic update settings.') . '</p>';
   }
 }
 
