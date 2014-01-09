@@ -12,8 +12,8 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
    */
   function options_definition_alter(&$options) {
     // Default options for our custom configuration form.
-    $options['vaf_use_fade'] = array('default' => 0);
-    $options['vaf_fade_duration'] = array('default' => 1500);
+    $options['vaf_use_fade'] = array('default' => 'no');
+    $options['vaf_fade_duration'] = array('default' => '');
 
     return $options;
   }
@@ -27,6 +27,10 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
       case 'vaf_use_fade':
         $use_fade = $this->display->get_option('vaf_use_fade');
         $duration = $this->display->get_option('vaf_fade_duration');
+        $options = array(
+          'yes' => t('Yes'),
+          'no' => t('No'),
+        );
 
         // The 'Yes/No' Toggle.
         $form['#title'] = 'Fade Ajax Views';
@@ -34,15 +38,15 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
           '#title' => t('Use fade effect on ajax:'),
           '#description' => t('Applies a fade out/in effect to pager transitions when "Use Ajax" set to "Yes" for the display.'),
           '#type' => 'radios',
-          '#options' => drupal_map_assoc(array(t('Yes'), t('No'))),
-          '#default_value' => $this->display->get_option('vaf_use_fade'),
+          '#options' => $options,
+          '#default_value' => isset($use_fade) ? $use_fade : 'no',
         );
         // The fade duration textbox.
         $form['vaf_fade_duration'] = array(
           '#title' => t('Fade Duration (in milliseconds):'),
           '#description' => t('Duration you want the content of the view to fade in and out.'),
           '#type' => 'textfield',
-          '#default_value' => $this->display->get_option('vaf_fade_duration'),
+          '#default_value' => isset($duration) ? $duration : '',
           '#size' => 30,
         );
         break;
@@ -66,7 +70,7 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
 
         // Throw an an error if the user has checked "Yes"
         // but has not given a duration value.
-        if (($use_fade == "Yes") && ($duration == '')) {
+        if (($use_fade == 'yes') && empty($duration)) {
           form_set_error('vaf_use_fade', t('Please specify the duration you want the content to fade in.'));
         }
         break;
@@ -77,15 +81,23 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
    * Helper function to insert the settings from the form.
    */
   function options_submit(&$form, &$form_state) {
-    $use_fade   = $form_state['values']['vaf_use_fade'];
-    $duration   = $form_state['values']['vaf_fade_duration'];
+    // We have this dump check hear to prevent notices from
+    // being thrown.
+    if (isset($form_state['values']['vaf_use_fade']) && isset($form_state['values']['vaf_fade_duration'])) {
+      $use_fade = $form_state['values']['vaf_use_fade'];
+      $duration = $form_state['values']['vaf_fade_duration'];
+    }
 
     // Grab the current settings from the form and save them
     // use set_option(). See views_plugin_display::set_option.
     switch ($form_state['section']) {
       case 'vaf_use_fade':
-        $this->display->set_option('vaf_use_fade', $use_fade);
-        $this->display->set_option('vaf_fade_duration', $duration);
+        if (isset($use_fade)) {
+          $this->display->set_option('vaf_use_fade', $use_fade);
+        }
+        if (isset($duration)) {
+          $this->display->set_option('vaf_fade_duration', $duration);
+        }
         break;
     }
   }
@@ -97,9 +109,10 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
    * under 'Advanced'.
    */
   function options_summary(&$categories, &$options) {
-    $use_fade = check_plain(trim($this->display->get_option('vaf_use_fade')));
-    $duration = check_plain(trim($this->display->get_option('vaf_fade_duration')));
-    if ($use_fade == 'Yes') {
+    $use_fade = $this->display->get_option('vaf_use_fade');
+    $duration = $this->display->get_option('vaf_fade_duration');
+
+    if ($use_fade == 'yes') {
       $use_fade = t('Yes') . ' (' . $duration . 'ms)';
     }
     else {
@@ -107,7 +120,7 @@ class views_plugin_ajax_fade extends views_plugin_display_extender {
     }
     $options['vaf_use_fade'] = array(
       'category' => 'other',
-      'title' => t('Use Ajax + Fade'),
+      'title' => t('Apply fade to Ajax'),
       'value' => $use_fade,
       'desc' => t('Change custom CSS rules for this display.'),
     );
