@@ -34,7 +34,7 @@ function location_province_list_cn() {
     '63' => "Qinghai",
     '64' => "Ningxia",
     '65' => "Xinjiang",
-    '71' => "Taiwan",
+    '71' => "Chinese Taipei",
     '91' => "Xianggang",
     '92' => "Aomen",
     '97' => "Chongqing",
@@ -44,7 +44,7 @@ function location_province_list_cn() {
 function location_map_link_cn_providers() {
   return array(
     'google' => array(
-      'name' => 'Google Maps',
+      'name' => t('Google Maps'),
       'url' => 'http://maps.google.com.hk',
       'tos' => 'http://www.google.com.hk/help/terms_maps.html',
     ),
@@ -65,7 +65,7 @@ function location_map_link_cn_google($location = array()) {
   }
 
   if (count($query_params)) {
-    return ('http://maps.google.com.hk?q='. urlencode(implode(', ', $query_params)));
+    return ('http://maps.google.com.hk?q=' . urlencode(implode(', ', $query_params)));
   }
   else {
     return NULL;

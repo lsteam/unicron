@@ -59,7 +59,7 @@ Drupal.gmap.getIcon = function (setname, sequence) {
              t.iconAnchor = new GPoint(q.anchorX, q.anchorY);
              t.infoWindowAnchor = new GPoint(q.infoX, q.infoY);
              */
-            p = Drupal.settings.basePath + Drupal.settings.pathPrefix + q.path;
+            p = Drupal.settings.basePath + q.path;
             t = new google.maps.MarkerImage(p + q.sequence[i].f,
                 new google.maps.Size(q.sequence[i].w, q.sequence[i].h),
                 null,

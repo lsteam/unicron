@@ -161,6 +161,20 @@ function gmap_admin_settings($form, &$form_state) {
   );
   gmap_widget_setup($form['gmap_default']['controltype'], 'controltype', 'settings_default_map');
 
+  $form['gmap_default']['pancontrol'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Pan control'),
+    '#default_value' => $defaults['pancontrol'],
+  );
+  gmap_widget_setup($form['gmap_default']['pancontrol'], 'pancontrol', 'settings_default_map');
+
+  $form['gmap_default']['streetviewcontrol'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show Street View control'),
+    '#default_value' => $defaults['streetviewcontrol'],
+  );
+  gmap_widget_setup($form['gmap_default']['streetviewcontrol'], 'streetviewcontrol', 'settings_default_map');
+
   $form['gmap_default']['mtc'] = array(
     '#type' => 'select',
     '#title' => t('Map Type Control'),

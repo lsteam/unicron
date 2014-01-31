@@ -18,9 +18,11 @@
  *    removed google.events and moved events to gmaps binds
  *    added overlay object for creating a shape based on pixels instead of meters (seems to be the use case?)
  *    added gmaps binds for marker higlights, and general highlights.
+ * JN201305 refactored to use a single overlay.  move functions from draw method to solve zoom problem, and multiple
+ *    highlights problem.
  *
  * You can add highlights to a map with:
- *    obj.change('addHighlight',-1, {latitude:#, longitude:#} );
+ *    obj.change('highlightAdd',-1, {latitude:#, longitude:#} );
  * You can highlight a marker with:
  *    obj.change('markerHighlight',-1, marker);
  *      marker: that marker object used when creating the marker.  It can have options set at marker.highlight
@@ -39,128 +41,169 @@
  * }
  */
 
-Drupal.gmap.factory.highlight = function (options) {
-    return new google.maps.Circle(options);
+Drupal.gmap.factory.highlight = function(options) {
+  /** @note it could be argued that we use the shapes library to create a circle,
+   * but this requires the shapes library be loaded and it would make all highlights
+   * repond to shapes events.
+   */
+  return new google.maps.Circle(options);
 }
 
 Drupal.gmap.addHandler('gmap', function (elem) {
-    var obj = this;
-    obj.highlights = {};
+  var obj = this;
+  obj.highlights = {};
 
-    var overlayHandler = function (map, highlight) {
-        this.setMap(map);
-        this.highlight = highlight;
+  /**
+   * This is a single overlay that can hold multiple highlight.
+   * All highlight shapes will be creted in this overlay, and use
+   * it to translate pixel dimensions to meters.
+   */
+  var highlightOverlay = function() {
+    this.highlights = []; // this will hold all of the highlights that we created, in case we need to recalculate/deactivate them
+  }
+  highlightOverlay.prototype = new google.maps.OverlayView();
+
+  // overlay method for when you .setMap( some map );
+  highlightOverlay.prototype.onAdd = function(map) { }
+  // overlay method for when you .setMap(null);
+  highlightOverlay.prototype.onRemove = function() {
+    // we have to recalculate radii for all shapes
+    var self = this;
+    jQuery.each( this.highlights , function(index, highlight) {
+      if ( highlight.shape.getMap() ) { // don't calculate if we don't have a map.
+        self.calculateHighlight(highlight); //recalculate all of those radii
+      }
+    });
+  }
+
+  // overlay method executed on any map change methods (zoom/move)
+  highlightOverlay.prototype.draw = function() {
+    // we have to recalculate radii for all shapes
+    var self = this;
+    jQuery.each( this.highlights , function(index, highlight) {
+      if ( highlight.shape.getMap() ) { // don't calculate if we don't have a map.
+        self.deactivateHighlight(highlight); //recalculate all of those radii
+      }
+    });
+  }
+
+  highlightOverlay.prototype.configHighlight = function(highlight) {
+    if ( !highlight.opts ) { highlight.opts = {}; } // sanity
+    if ( !highlight.behavior ) { highlight.behavior = {}; } // sanity
+    if ( !highlight.position ) { highlight.position = new google.maps.LatLng( highlight.latitude, highlight.longitude ); } // if you have a pos already then use it, otherwise gimme a lat/lon
+
+    jQuery.each({ // collect the options from either the highlight.opts object, from the passed target value, as a behavior or a defaultVal value.
+      radius: {target:'radius',defaultVal:10}, // radius in pixels
+      strokeColor: {target:'border',defaultVal:'#777777'},
+      strokeWeight: {target:'weight',defaultVal:2},
+      strokeOpacity: {target:'opacity',defaultVal:0.7},
+      fillColor: {target:'color',defaultVal:'#777777'},
+      fillOpacity: {target:'opacity',defaultVal:0.7},
+      draggable: {behavior:'draggable',defaultVal:false},
+      editable: {behavior:'editable',defaultVal:false}
+    }, function( key , config ) {
+      if ( highlight.opts[key] ) { // options was passed in
+        return true;
+      }
+      else if (config.target && highlight[ config.target ]) { // highight[target] can give us a setting
+        highlight.opts[key] = highlight[ config.target ];
+      }
+      else if ( config.behavior && highlight.behavior && highlight.behavior[ config.behavior ] ) { // value is a behaviour, should it be enabled?
+        highlight.opts[key] = highlight.behavior[ config.behavior ];
+      }
+      else if (config.defaultVal) { // defaultVal value
+        highlight.opts[key] = config.defaultVal;
+      }
+    });
+
+    highlight.opts.center = highlight.position;
+    // note that there is no opts.map, unless you passed one in.  maybe we should make sure that you didn't?
+
+    // add this highlight to our list, so that we can draw it in the draw method (which will also redraw it after map change events.
+    this.highlights.push(highlight);
+  }
+  // determine how big the circle should be in meters (as we were likely passed pixels).  This radius changes on zoom and move events.
+  highlightOverlay.prototype.calculateHighlight = function( highlight ) { // this nees a better name
+
+    if ( highlight.behavior.radiusInMeters ) {
+      highligh.opts.radiusInMeters = highlight.opts.radius;
     }
-    overlayHandler.prototype = new google.maps.OverlayView();
-    overlayHandler.prototype.onAdd = function () {
-        var highlight = this.highlight;
-        if (!highlight.opts) {
-            highlight.opts = {};
-        } // sanity
-        if (!highlight.behavior) {
-            highlight.behavior = {};
-        } // sanity
-        if (!highlight.position) {
-            highlight.position = new google.maps.LatLng(highlight.latitude, highlight.longitude);
-        } // if you have a pos already then use it, otherwise gimme a lat/lon
-
-        $.each({ // collect the options from either the highligh.opts object, from the passed target value, as a behavior or a default value
-            radius: {target: 'radius', default: 10}, // radius in pixels
-            strokeColor: {target: 'border', default: '#777777'},
-            strokeWeight: {target: 'weight', default: 2},
-            strokeOpacity: {target: 'opacity', default: 0.7},
-            fillColor: {target: 'color', default: '#777777'},
-            fillOpacity: {target: 'opacity', default: 0.7},
-            draggable: {behavior: 'draggable', default: false},
-            editable: {behavior: 'editable', default: false},
-        }, function (key, config) {
-            if (highlight.opts[key]) { // options was passed in
-                return true;
-            }
-            else if (config.target && highlight[ config.target ]) { // highight.target should have a value
-                highlight.opts[key] = highlight[ config.target ];
-            }
-            else if (config.behavior && highlight.behavior && highlight.behavior[ config.behavior ]) { // value is a behaviour
-                highlight.opts[key] = highlight.behavior[ config.behavior ];
-            }
-            else if (config.default) { // default valuee
-                highlight.opts[key] = config.default;
-            }
-        });
-
-        highlight.opts.map = this.map;
-        highlight.opts.center = highlight.position;
-
-    }
-    overlayHandler.prototype.draw = function () {
-        var highlight = this.highlight;
-        if (!this.highlight.behavior.radiusInMeters) {
-            var projection = this.getProjection();
-            var mapZoom = this.map.getZoom();
-            var center = projection.fromLatLngToDivPixel(highlight.opts.center, mapZoom);
-            var radius = highlight.opts.radius;
-            var radial = projection.fromDivPixelToLatLng(new google.maps.Point(center.x, center.y + radius), mapZoom); // find a point that is the radius distance away in pixels
-            highlight.opts.radius = google.maps.geometry.spherical.computeDistanceBetween(highlight.opts.center, radial);
-            highlight.behavior.radiusInMeters = true;
-        }
-        highlight.highlight = Drupal.gmap.factory.highlight(highlight.opts);
-    }
-    overlayHandler.prototype.onRemove = function () {
-        if (this.highlight.highlight) {
-            this.highlight.highlight.setMap(null);
-        }
+    else {
+      var mapZoom = this.map.getZoom();
+      var projection = this.getProjection();
+      var center = projection.fromLatLngToDivPixel(highlight.opts.center, mapZoom);
+      var radius = highlight.opts.radius;
+      var radial = projection.fromDivPixelToLatLng(new google.maps.Point(center.x, center.y+radius), mapZoom); // find a point that is the radius distance away in pixels from the ccenter point.
+      highlight.opts.radiusInMeters = google.maps.geometry.spherical.computeDistanceBetween (highlight.opts.center, radial);
     }
 
-    Drupal.gmap.highlight = function (highlight) {
-        new overlayHandler(obj.map, highlight); // all actions happen in an overlayview, so that we can input pixels for radius instead of meters and positions
+    if ( highlight.shape ) {
+      highlight.shape.setOptions(highlight.opts);
+      // we can use this if we don't care about other options changing : highlight.shape.setRadius(highlight.opts.radiusInMeters)
+    }
+    else {
+      highlight.shape = Drupal.gmap.factory.highlight( jQuery.extend({},highlight.opts,{radius:highlight.opts.radiusInMeters}) ); // only pass radiusinmeters to g.m.circle.  We keep the pixel radius in case we need to calculate again after a zoom
+      }
+  }
+  highlightOverlay.prototype.activateHighlight = function( highlight ) {
+    if ( !highlight.shape ) {
+      this.configHighlight( highlight );
+      this.calculateHighlight( highlight );
+    }
+    highlight.shape.setMap(this.map);
+  }
+  highlightOverlay.prototype.deactivateHighlight = function( highlight ) {
+    if ( highlight.shape ) {
+      highlight.shape.setMap(null);
+    }
+  }
+  highlightOverlay.prototype.updateHighlight = function( highlight ) {
+    if ( highlight.shape ) {
+      this.configHighlight( highlight );
+      this.calculateHighlight( highlight );
+    }
+  }
+
+  // prepare a single highlight overlay to be used for all highlights
+  obj.bind('init', function(highlight) {
+    obj.highlightOverlay = new highlightOverlay( obj.map );
+    obj.highlightOverlay.setMap( obj.map ); // this will trigger the onAdd() method, and the first draw()
+  });
+
+  // set and remove map highlights
+  obj.bind('highlightAdd', function(highlight) { // if you activate an activated highlight, nothing happens.
+    obj.highlightOverlay.activateHighlight(highlight);
+  });
+  obj.bind('highlightRemove', function(highlight) {
+    obj.highlightOverlay.deactivateHighlight(highlight);
+  });
+  obj.bind('highlightUpdate', function(highlight) {
+    obj.highlightOverlay.updateHighlight(highlight);
+  });
+
+ // Marker specific highlight events:
+  var highlightedMarkers = []; // remember markers that have been highlighted. so that we can un-highlight them all at one.  The defaultVal behaviour is to allow only 1 marker highlighted at any time.
+  obj.bind('markerHighlight', function (marker) {
+    highlightedMarkers.push( marker );
+
+    // If the highlight arg option is used in views highlight the marker.
+    if ( !marker.highlight ) { marker.highlight = {} }
+    if ( !marker.highlight.color && obj.vars.styles.highlight_color ) { marker.highlight.color = '#' + obj.vars.styles.highlight_color; }
+    marker.highlight.position = marker.marker.getPosition();
+    obj.change('highlightAdd', -1, marker.highlight );
+  });
+  obj.bind('markerUnHighlight', function(marker) {
+    if ( marker.highlight ) {
+      obj.change('highlightRemove', -1, marker.highlight);
+      delete marker.highlight;
+    }
+  });
+  obj.bind('markerUnHighlightActive', function() {
+    var marker;
+    while ( marker = highlightedMarkers.pop() ) {
+      obj.change('highlightRemove', -1, marker);
     };
-    Drupal.gmap.unhighlight = function (highlight) { // this can take an object that has a highlight, or a highlight/circle object
-        if (highlight.highlight && highlight.highlight.setMap) {
-            highlight.highlight.setMap(null);
-        }
-        else if (highlight.setMap) {
-            highlight.setMap(null);
-        }
-    }
-
-    // set and remove map highlights
-
-    obj.bind('addHighlight', function (highlight) {
-        Drupal.gmap.highlight(highlight);
-    });
-    obj.bind('removeHighlight', function (highlight) {
-        Drupal.gmap.unhighlight(highlight);
-    });
-
-    // Marker specific code:
-    var activeMarker; // remember that last marker activated.  In the default case we only allow one highlighted marker at a time
-    obj.bind('markerHighlight', function (marker) {
-        if (activeMarker && !obj.vars.behavior.allowMultipleMarkerHighlight) {
-            obj.change('markerUnHighlight', -1, activeMarker);
-        } // deactivate the active marker
-
-        // If the highlight arg option is used in views highlight the marker.
-        if (!marker.highlight) {
-            marker.highlight = {}
-        }
-        if (!marker.highlight.color && obj.vars.styles.highlight_color) {
-            marker.highlight.color = '#' + obj.vars.styles.highlight_color;
-        }
-        marker.highlight.position = marker.marker.getPosition();
-        Drupal.gmap.highlight(marker.highlight);
-        activeMarker = marker;
-    });
-    obj.bind('markerUnHighlight', function (marker) {
-        if (!marker) {
-            marker = activeMarker;
-        } // remove the active marker if no marker is passed in
-        if (activeMarker === marker) {
-            activeMarker = null;
-        }
-        if (marker.highlight) {
-            Drupal.gmap.unhighlight(marker.highlight);
-        }
-    });
+  });
 
     /**
      * Marker Binds
@@ -173,7 +216,6 @@ Drupal.gmap.addHandler('gmap', function (elem) {
      * of repeated inside each bind, but this arrangement allows for
      * the behaviour to change, at a small cost.
      */
-
     obj.bind('addmarker', function (marker) {
         if (obj.vars.behavior.highlight) {
             google.maps.event.addListener(marker.marker, 'mouseover', function () {
@@ -181,6 +223,9 @@ Drupal.gmap.addHandler('gmap', function (elem) {
             });
             google.maps.event.addListener(marker.marker, 'mouseout', function () {
                 obj.change('markerUnHighlight', -1, marker);
+            });
+            google.maps.event.addListener(marker.marker, 'mouseout', function () {
+                obj.change('markerUnHighlight',-1,marker);
             });
         }
         // If the highlight arg option is used in views highlight the marker.

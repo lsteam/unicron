@@ -31,6 +31,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
     $options['latfield'] = array('default' => '');
     $options['lonfield'] = array('default' => '');
     $options['markerfield'] = array('default' => '');
+    $options['geofield'] = array('default' => '');
 
     $options['enablermt'] = array('default' => FALSE);
     $options['rmtfield'] = array('default' => '');
@@ -199,6 +200,12 @@ class gmap_plugin_style_gmap extends views_plugin_style {
         elseif ($this->options['datasource'] == 'fields') {
           $lat = isset($row->{$lat_field}[0]['raw']['value']) ? (float) $row->{$lat_field}[0]['raw']['value'] : NULL;
           $lon = isset($row->{$lon_field}[0]['raw']['value']) ? (float) $row->{$lon_field}[0]['raw']['value'] : NULL;
+
+          // Field is Location CCK
+          if (!$lat || !$lon) {
+            $lat = isset($row->{$lat_field}[0]['raw']['latitude']) ? $row->{$lat_field}[0]['raw']['latitude'] : NULL;
+            $lon = isset($row->{$lon_field}[0]['raw']['longitude']) ? $row->{$lon_field}[0]['raw']['longitude'] : NULL;
+          }
         }
 
         // $row->nid is present in node views, views without node as the base table must include the nid field,
@@ -237,7 +244,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
           }
           elseif ($this->options['markers'] == 'field') {
 
-            if (!empty($row->{$marker_field})) {
+            if (!empty($row->{$marker_field}) && !empty($row->{$marker_field}[0]['raw']['value'])) {
               $markername = $row->{$marker_field}[0]['raw']['value'];
             }
           }
@@ -341,8 +348,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#title' => t('Macro'),
       '#rows' => 3,
       '#default_value' => $this->options['macro'],
-      '#description' => t('Enter a macro. If left unchanged, it takes the default settings from <a href="!link">/admin/config/services/gmap</a>',
-        array('!link' => url('admin/config/services/gmap'))),
+      '#description' => t('Enter a macro. If left unchanged, it takes the default settings from <a href="!link">/admin/config/services/gmap</a>. See the <a href="http://drupal.org/documentation/modules/gmap/macros">documentation on GMap macros</a>.', array('!link' => url('admin/config/services/gmap'))),
     );
 
     $form['datasource'] = array(

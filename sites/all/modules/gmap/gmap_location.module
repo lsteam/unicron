@@ -440,7 +440,7 @@ function gmap_location_admin_settings() {
     '#default_value' => $temp['macro'],
     '#size' => 50,
     '#maxlength' => 500,
-    '#description' => t('The gmap macro where the user information will be diplayed on.'),
+    '#description' => t('The GMap macro to be used when displaying user information. See the <a href="http://drupal.org/documentation/modules/gmap/macros">documentation on GMap macros</a>.'),
   );
   $form['user']['gmap_user_map']['header'] = array(
     '#type' => 'textarea',
@@ -509,7 +509,7 @@ function gmap_location_admin_settings() {
     '#default_value' => $temp['macro'],
     '#size' => 50,
     '#maxlength' => 500,
-    '#description' => t('The gmap macro where the node information will be diplayed on.'),
+    '#description' => t('The GMap macro which will be used to display the node information. See the <a href="http://drupal.org/documentation/modules/gmap/macros">documentation on GMap macros</a>.'),
   );
   $form['node']['gmap_node_map']['header'] = array(
     '#type' => 'textarea',

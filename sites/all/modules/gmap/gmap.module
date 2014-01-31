@@ -29,6 +29,8 @@ function gmap_defaults() {
     'zoom' => 3,
     'maxzoom' => 14,
     'controltype' => 'Small',
+    'pancontrol' => 1,
+    'streetviewcontrol' => 0,
     'align' => 'None',
     'latlong' => '40,0',
     'maptype' => 'Map',
@@ -190,12 +192,12 @@ function gmap_gmap($op, &$map) {
           'help' => t('Used for advanced javascript work, this will enable the <em>clickshape</em> event.'),
           'internal' => TRUE,
         ),
-        'googlebar' => array(
-          'title' => t('Enable Google Bar'),
-          'default' => FALSE,
-          'help' => t('Enable the "Google Bar" at bottom of the map.'),
-          'previewable' => TRUE,
-        ),
+        //'googlebar' => array(
+        //  'title' => t('Enable Google Bar'),
+        //  'default' => FALSE,
+        //  'help' => t('Enable the "Google Bar" at bottom of the map.'),
+        //  'previewable' => TRUE,
+        //),
         'highlight' => array(
           'title' => t('Highlight marker on rollover'),
           'default' => FALSE,
@@ -1168,12 +1170,22 @@ function gmap_geocode($address, $tld = 'com') {
   $data = drupal_http_request(gmap_views_protocol() . '://maps.googleapis.' . $tld . '/maps/api/geocode/json?address=' . urlencode($address) . '&sensor=false');
   if ($data->code == 200) {
     $data_decoded = json_decode($data->data);
-    return array(
-      'status' => $data_decoded->status,
-      'accuracy' => $data_decoded->results[0]->geometry->location_type,
-      'latitude' => $data_decoded->results[0]->geometry->location->lat,
-      'longitude' => $data_decoded->results[0]->geometry->location->lng,
-    );
+    if ($data_decoded->status == 'ZERO_RESULTS' || $data_decoded->status == 'OVER_QUERY_LIMIT') {
+      return array(
+        'status' => $data_decoded->status,
+        'accuracy' => NULL,
+        'latitude' => NULL,
+        'longitude' => NULL,
+      );
+    }
+    else {
+      return array(
+        'status' => $data_decoded->status,
+        'accuracy' => $data_decoded->results[0]->geometry->location_type,
+        'latitude' => $data_decoded->results[0]->geometry->location->lat,
+        'longitude' => $data_decoded->results[0]->geometry->location->lng,
+      );
+    }
   }
   // Non 200 is G_GEO_SERVER_ERROR (500).
   return array(
