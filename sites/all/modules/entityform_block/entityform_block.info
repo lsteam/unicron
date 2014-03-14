@@ -1,0 +1,14 @@
+name = Entityforms Block
+description = Allows to load a specified entity form as a block
+dependencies[] = entityform
+package = Entityforms
+core = 7.x
+files[] = entityform_block.module
+files[] = entityform_block.test
+
+; Information added by  packaging script on 2013-11-29
+version = "7.x-1.0"
+core = "7.x"
+project = "entityform_block"
+datestamp = "1385763205"
+

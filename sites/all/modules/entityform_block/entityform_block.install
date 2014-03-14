@@ -1,0 +1,4 @@
+<?php
+function entityform_block_uninstall() {
+  variable_del('entityform_block_types');
+}
