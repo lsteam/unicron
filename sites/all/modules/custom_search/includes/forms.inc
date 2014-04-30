@@ -50,7 +50,7 @@ function _custom_search_default_admin_form($delta = '') {
       '#type'           => 'select',
       '#title'          => t('Search box input type'),
       '#options'        => array(
-        'text'        => 'text',
+        'textfield'   => 'text',
         'searchfield' => 'search (HTML5)',
       ),
       '#default_value'  => variable_get('custom_search_' . $delta . 'element', 'textfield'),
@@ -323,7 +323,7 @@ function _custom_search_custom_paths_admin_form($delta = '') {
     '#title'          => t('Paths'),
     '#default_value'  => variable_get('custom_search_' . $delta . 'paths', ''),
     '#rows'           => 3,
-    '#description'    => t('If you want to use custom search paths, enter them here in the form <em>path</em>|<em>label</em>, one per line (if only one path is specified, the selector will be hidden). The [key] token will be replaced by what is entered in the search box. Ie: mysearch/[key]|My custom search label.'),
+    '#description'    => t('If you want to use custom search paths, enter them here in the form <em>path</em>|<em>label</em>, one per line (if only one path is specified, the selector will be hidden). The [key] token will be replaced by what is entered in the search box. Ie: mysearch/[key]|My custom search label. The [current_path] token can be used to use the current URL path of the page beeing viewed.'),
   );
   return $form;
 }

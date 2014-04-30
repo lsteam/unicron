@@ -118,19 +118,6 @@ function custom_search_form_alter(&$form, &$form_state, $form_id) {
           $form['advanced']['keywords']['negative']['#type'] = 'hidden';
         }
 
-        // Taxonomy.
-        if (module_exists('taxonomy')) {
-          $vocabularies = taxonomy_get_vocabularies();
-          foreach ($vocabularies as $voc) {
-            if (!variable_get('custom_search_advanced_voc' . $voc->vid . '_display', TRUE)) {
-              unset($form['advanced']['category']['#options'][$voc->name]);
-            }
-          }
-          if (isset($form['advanced']['category']) && !count($form['advanced']['category']['#options'])) {
-            unset($form['advanced']['category']['#type']);
-          }
-        }
-
         // Content types.
         $names = array_keys(node_type_get_names());
         foreach ($names as $name) {
@@ -140,6 +127,23 @@ function custom_search_form_alter(&$form, &$form_state, $form_id) {
         }
         if (!count($form['advanced']['type']['#options'])) {
           unset($form['advanced']['type']['#type']);
+        }
+
+        // Languages.
+        foreach (language_list('language') as $key => $entity) {
+          if ($entity->enabled) {
+            $language_options[$key] = $entity->name;
+          }
+        }
+        if (count($language_options) > 1) {
+          foreach ($language_options as $key => $name) {
+            if (!variable_get('custom_search_advanced_language_' . $key . '_display', TRUE)) {
+              unset($form['advanced']['language']['#options'][$key]);
+            } 
+          }
+          if (!count($form['advanced']['language']['#options'])) {
+            unset($form['advanced']['language']['#type']);
+          }
         }
 
         if (!variable_get('custom_search_results_search', TRUE)) {
@@ -316,6 +320,7 @@ function custom_search_form_alter(&$form, &$form_state, $form_id) {
             'alt'   => array(variable_get('custom_search_' . $delta . 'submit_text', CUSTOM_SEARCH_SUBMIT_TEXT_DEFAULT)),
             'class' => array('custom-search-button'),
           );
+          unset($form['actions']['submit']['#value']);
         }
         elseif ($form['actions']['submit']['#value'] == '') {
           $form['actions']['submit']['#attributes'] = array('style' => 'display:none;');
@@ -378,6 +383,7 @@ function custom_search_submit($form, &$form_state) {
   variable_set('custom_search_delta', $delta);
   $type = 'node';
   $keys = $form_state['values'][$form_state['values']['form_id']];
+  $keys = str_replace('/', '%2f', $keys);
   $original_keywords = $keys;
 
   $types = (isset($form_state['values']['custom_search_types'])) ? $form_state['values']['custom_search_types'] : array();
@@ -432,8 +438,8 @@ function custom_search_submit($form, &$form_state) {
       // If -Any- is selected and -Any- is set to restrict the search,
       // grab the content types.
       elseif (variable_get('custom_search_' . $delta . 'any_restricts', FALSE)) {
-        $restricted_types = array_keys(array_filter(variable_get('custom_search_' . $delta . 'node_types', array())));
-        $keys = search_expression_insert($keys, 'type', implode(',', $restricted_types));
+        $types = array_keys(array_filter(variable_get('custom_search_' . $delta . 'node_types', array())));
+        $keys = search_expression_insert($keys, 'type', implode(',', $types));
       }
     }
     if (module_exists('taxonomy') && count($terms)) {
@@ -495,6 +501,7 @@ function custom_search_submit($form, &$form_state) {
   // Build a custom path if needed.
   if (isset($form_state['values']['custom_search_paths']) && $form_state['values']['custom_search_paths'] != '') {
     $custom_path = str_replace('[key]', $form_state['values'][$form_state['values']['form_id']], $form_state['values']['custom_search_paths']);
+    $custom_path = str_replace('[current_path]', current_path(), $custom_path);
     if (strpos($form_state['values']['custom_search_paths'], '[terms]') !== FALSE) {
       $custom_path = str_replace('[terms]', (count($terms)) ? implode($form_state['values']['custom_search_paths_terms_separator'], $terms) : '', $custom_path);
     }

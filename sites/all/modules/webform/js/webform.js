@@ -148,6 +148,7 @@ Drupal.webform.conditionalCheck = function(e) {
       }
 
       // Flip the result of the action is to hide.
+      var showComponent;
       if (ruleGroup['action'] == 'hide') {
         showComponent = !conditionalResult;
       }
@@ -155,13 +156,18 @@ Drupal.webform.conditionalCheck = function(e) {
         showComponent = conditionalResult;
       }
 
+      var $target = $form.find('.' + ruleGroup['target']);
+      var $targetElements;
       if (showComponent) {
-        $form.find('.' + ruleGroup['target']).find('.webform-conditional-disabled').removeAttr('disabled').removeClass('webform-conditional-disabled').end().show();
+        $targetElements = $target.find('.webform-conditional-disabled').removeClass('webform-conditional-disabled');
+        $.fn.prop ? $targetElements.prop('disabled', false) : $targetElements.removeAttr('disabled');
+        $target.show();
       }
       else {
-        $form.find('.' + ruleGroup['target']).find(':input').attr('disabled', true).addClass('webform-conditional-disabled').end().hide();
+        $targetElements = $target.find(':input').addClass('webform-conditional-disabled');
+        $.fn.prop ? $targetElements.prop('disabled', true) : $targetElements.attr('disabled', true);
+        $target.hide();
       }
-
     });
   }
 
@@ -250,15 +256,7 @@ Drupal.webform.conditionalOperatorStringEmpty = function(element, existingValue,
 };
 
 Drupal.webform.conditionalOperatorStringNotEmpty = function(element, existingValue, ruleValue) {
-  var currentValue = Drupal.webform.stringValue(element, existingValue);
-  var empty = false;
-  $.each(currentValue, function(n, value) {
-    if (value === '') {
-      empty = true;
-      return false; // break.
-    }
-  });
-  return !empty;
+  return !Drupal.webform.conditionalOperatorStringEmpty(element, existingValue, ruleValue);
 };
 
 Drupal.webform.conditionalOperatorNumericEqual = function(element, existingValue, ruleValue) {

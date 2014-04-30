@@ -5,15 +5,16 @@
       if (!Drupal.settings.custom_search.solr) {
         // Check if the search box is not empty on submit
         $('form.search-form', context).submit(function(){
-          var box = $(this).find('input.custom-search-box');
+          var $this = $(this);
+          var box = $this.find('input.custom-search-box');
           if (box.val() != undefined && box.val() == '') {
-            $(this).find('input.custom-search-box').addClass('error');
+            $this.find('input.custom-search-box').addClass('error');
             return false;
           }
           // If basic search is hidden, copy or value to the keys
-          if ($(this).find('#edit-keys').parents('div.element-invisible').attr('class') == 'element-invisible') {
-            $(this).find('#edit-keys').val($(this).find('#edit-or').val());
-            $(this).find('#edit-or').val('');
+          if ($this.find('#edit-keys').parents('div.element-invisible').attr('class') == 'element-invisible') {
+            $this.find('#edit-keys').val($this.find('#edit-or').val());
+            $this.find('#edit-or').val('');
           }
           return true;
         });
@@ -24,8 +25,7 @@
 
       // Displays Popup.
       $('form.search-form input.custom-search-box', context).bind('click focus', function(e){
-        $this = $(this);
-        $parentForm = $this.parents('form');
+        var $parentForm = $(this).parents('form');
         // check if there's something in the popup and displays it
         var popup = $parentForm.find('fieldset.custom_search-popup');
         if (popup.find('input,select').length && !popup.hasClass('opened')) {
@@ -68,7 +68,7 @@
       if(edit_keys) {
         // types
         var pos = edit_keys.indexOf('type:');
-        if (pos) {
+        if (pos != -1) {
           var pos2 = edit_keys.indexOf(' ', pos);
           if (pos2 == -1) {
             pos2 = edit_keys.length;
@@ -81,7 +81,7 @@
         }
         // terms
         var pos = edit_keys.indexOf('term:');
-        if (pos) {
+        if (pos != -1) {
           var pos2 = edit_keys.indexOf(' ', pos);
           if (pos2 == -1) {
             pos2 = edit_keys.length;
@@ -94,7 +94,7 @@
         }
         // languages
         var pos = edit_keys.indexOf('language:');
-        if (pos) {
+        if (pos != 1) {
           var pos2 = edit_keys.indexOf(' ', pos);
           if (pos2 == -1) {
             pos2 = edit_keys.length;
