@@ -339,10 +339,10 @@ Drupal.gmap.addHandler('gmap', function (elem) {
             opts.zoomControl = true;
         }
         if (obj.vars.pancontrol) {
-          opts.panControl = true;
+            opts.panControl = true;
         }
         if (obj.vars.streetviewcontrol) {
-          opts.streetViewControl = true;
+            opts.streetViewControl = true;
         }
         if (obj.vars.controltype === 'Small') {
             obj.zoomControlOptions = {style: google.maps.ZoomControlStyle.SMALL};
@@ -400,9 +400,9 @@ Drupal.gmap.addHandler('gmap', function (elem) {
             // hence it being a behavior.
             setTimeout(function () {
                 var r = function () {
-                  var coord = map.getCenter();
-                  google.maps.event.trigger(map, "resize");
-                  map.setCenter(new google.maps.LatLng(coord.lat(), coord.lng()), obj.vars.zoom);
+                    var coord = map.getCenter();
+                    google.maps.event.trigger(map, "resize");
+                    map.setCenter(new google.maps.LatLng(coord.lat(), coord.lng()), obj.vars.zoom);
                 };
                 jQuery(elem).parents('fieldset.collapsible').children('legend').children('a').click(r);
                 jQuery('.vertical-tab-button', jQuery(elem).parents('.vertical-tabs')).children('a').click(r);

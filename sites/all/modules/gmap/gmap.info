@@ -7,10 +7,16 @@ configure = admin/config/services/gmap
 files[] = gmap_plugin_style_gmap.inc
 files[] = gmap_plugin_style_gmapextended.inc
 files[] = tests/gmap.test
+files[] = tests/oopmigration.test
+files[] = lib/Drupal/gmap/GmapDefaults.php
+files[] = lib/Drupal/gmap/GmapPolylineToolbox.php
+files[] = lib/Drupal/gmap/GmapMacroToolbox.php
+files[] = tests/inc/gmap_polyutil.inc
+files[] = tests/inc/gmap_defaults.inc
 
-; Information added by drupal.org packaging script on 2013-10-24
-version = "7.x-2.8"
+; Information added by Drupal.org packaging script on 2014-03-10
+version = "7.x-2.9"
 core = "7.x"
 project = "gmap"
-datestamp = "1382625633"
+datestamp = "1394461106"
 

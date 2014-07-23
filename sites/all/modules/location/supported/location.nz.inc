@@ -99,7 +99,7 @@ function location_latlon_rough_nz($location = array()) {
 
   $result = db_query("SELECT latitude, longitude FROM {zipcodes} WHERE country = '%s' AND zip = '%s'", $location['country'], substr(str_pad($location['postal_code'], 4, '0', STR_PAD_LEFT), 0, 4));
 
-  if ($row = db_fetch_object($result)) {
+  if ($row = $result->fetch()) {
     return array('lat' => $row->latitude, 'lon' => $row->longitude);
   }
   else {
@@ -126,7 +126,7 @@ function location_latlon_rough_nz($location = array()) {
  */
 function _location_latlon_postalcode_nz($location = array()) {
   $res = db_query("SELECT * FROM {zipcodes} where country = '%s' AND zip = '%s'", $location['country'], str_pad($location['postal_code'], 4, "0", STR_PAD_LEFT));
-  if ($row = db_fetch_object($res)) {
+  if ($row = $res->fetch()) {
     return array(
       'lat' => $row->latitude,
       'lon' => $row->longitude,
@@ -336,7 +336,7 @@ function location_geocode_nz_yahoo_settings() {
     '#size' => 64,
     '#maxlength' => 128,
     '#default_value' => variable_get('location_geocode_nz_yahoo_appid', 'YahooDemo'),
-    '#description' => t('Unless you are using this site to test and develop, you will need to obtain a Yahoo! Web Services Application ID from the %network_link.  If you are using for development and testing purposes, you can use \'YahooDemo\' as your AppID.  When getting an Application ID from Yahoo!, please also be sure to review the %usage_policy.', array(
+    '#description' => t('Unless you are using this site to test and develop, you will need to obtain a Yahoo! Web Services Application ID from the %network_link.  If you are using for development and testing purposes, you can use \'YahooDemo\' as your AppID.  When getting an Application ID from Yahoo!, be sure to review the %usage_policy.', array(
       '%network_link' => '<a href="http://api.search.yahoo.com/webservices/register_application">Yahoo! Developer Network</a>',
       '%usage_policy' => '<a href="http://developer.yahoo.com/usagePolicy/index.html">usage policy</a>'
     ))

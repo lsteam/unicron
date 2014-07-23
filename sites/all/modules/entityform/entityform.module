@@ -1206,6 +1206,16 @@ class EntityformController extends EntityAPIController {
   public function create(array $values = array()) {
     // We need a type for the bundle but it may not be valid.
     if (isset($values['type'])) {
+      // Rules supplies a EntityformType object instead of string.
+      if (is_object($values['type'])) {
+        if (get_class($values['type']) == 'EntityformType') {
+          $values['type'] = $values['type']->type;
+        }
+        else {
+          // This should never happen.
+          throw new EntityMalformedException("Object sent for EntityformType not of class EntityformType.");
+        }
+      }
       $type = entityform_get_types($values['type']);
     }
     if (empty($type)) {

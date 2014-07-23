@@ -70,7 +70,7 @@ function google_geocode_country_list() {
   // if google adds countries that don't match the Drupal API list for whatever
   // reason.
   $countries = location_get_iso3166_list();
-  $regex = "#[ (].*[)]#e";
+  $regex = "#[ (].*[)]#";
   $cntryclean = preg_replace($regex, "", $countries);
   $countriesfixes = array_merge($cntryclean, array(
     "hk" => t("China"),
@@ -120,11 +120,34 @@ function google_geocode_location($location = array()) {
   $query = array(
     'region' => $location['country'],
     'address' => _google_geocode_flatten($location),
-    'components' => _google_geocode_get_components($location),
     'sensor' => 'false', // Required by TOS.
   );
+  if (!empty($location['country'])) {
+    // If we have only a country code and nothing else,
+    // pass in country component so that google doesn't mistake the country
+    // code for some other short code, like administrative area.
+    $filtered_location = array_filter($location, function($a) {
+      // Handle locpick & settings arrays.
+      // No actual location data should be in an array.
+      if (is_array($a)) {
+        return FALSE;
+      }
+      return is_string($a) ? trim($a) : $a;
+    });
+    if (count($filtered_location) == 1) {
+      $query['components'] = _google_geocode_get_components($filtered_location);
+    }
+  }
 
-  $url = url('http://maps.googleapis.com/maps/api/geocode/json', array(
+  $key = variable_get('location_geocode_google_apikey', '');
+  if (empty($key) && function_exists('gmap_get_key')) {
+    $key = gmap_get_key();
+  }
+  if(!empty($key)) {
+    $query['key'] = $key;
+  }
+
+  $url = url('https://maps.googleapis.com/maps/api/geocode/json', array(
     'query' => $query,
     'external' => TRUE,
   ));
@@ -151,32 +174,18 @@ function google_geocode_location($location = array()) {
  */
 function google_geocode_settings() {
   $form = array();
-  $key = '';
-  if (function_exists('gmap_get_key')) {
-    $key = gmap_get_key();
-  }
 
-  if (!empty($key)) {
-    $form['location_geocode_google_apikey'] = array(
-      '#type' => 'item',
-      '#title' => t('Google Maps API Key'),
-      '#value' => $key,
-      '#description' => t('The key in use was automatically provided by GMap.'),
-    );
-  }
-  else {
-    $form['location_geocode_google_apikey'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Google Maps API Key'),
-      '#size' => 64,
-      '#maxlength' => 128,
-      '#default_value' => variable_get('location_geocode_google_apikey', ''),
-      '#description' => t('In order to use the Google Maps API geocoding web-service, you will need a Google Maps API Key.  You can obtain one at the !sign_up_link for the !google_maps_api.  PLEASE NOTE: You will <em>not</em> have to re-enter your API key for each country for which you have selected Google Maps for geocoding.  This setting is global.', array(
-        '!sign_up_link' => '<a href="http://www.google.com/apis/maps/signup.html">sign-up page</a>',
-        '!google_maps_api' => '<a href="http://www.google.com/apis/maps/">Google Maps API</a>'
-      ))
-    );
-  }
+  $form['location_geocode_google_apikey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Google Geocoding API Server Key'),
+    '#size' => 64,
+    '#maxlength' => 128,
+    '#default_value' => variable_get('location_geocode_google_apikey', ''),
+    '#description' => t('In order to use the Google Geocoding API web-service, you will need a Google Geocoding API Server Key.  You can obtain one at the !sign_up_link for the !google_maps_api.  Without a key daily requests from a single IP address will be automaticaly limited.  If you do not enter a key here this module will use the Google Maps API Key from gmap if one is present. NOTE: You will <em>not</em> have to re-enter your API key for each country for which you have selected Google Maps for geocoding.  This setting is global.', array(
+      '!sign_up_link' => '<a href="http://console.developers.google.com/">sign-up page</a>',
+      '!google_maps_api' => '<a href="http://developers.google.com/maps/documentation/geocoding/">Google Geocoding API</a>'
+    ))
+  );
 
   $form['location_geocode_google_delay'] = array(
     '#type' => 'textfield',

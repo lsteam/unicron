@@ -104,7 +104,7 @@ function entityform_block_submit(&$form, &$form_state) {
       }
     }
   }
-  if ($form_state['values']['data']['block_set']['enable_block'] == 1) {
+  if ($form_state['values']['data']['enable_block'] == 1) {
     $enabled = TRUE;
   }
   if (isset($enabled)) {

@@ -742,7 +742,7 @@ function _gmap_location_block_view($nid) {
       $map['latitude'] = $markers[0]['latitude'];
       $map['longitude'] = $markers[0]['longitude'];
       $map['markers'] = $markers;
-      $block['subject'] = t('Location');
+      $block['subject'] = t('Location', array(), array('context' => 'geolocation'));
       $element = array(
         '#type' => 'gmap',
         '#gmap_settings' => $map,
@@ -839,7 +839,7 @@ function theme_gmap_location_infowindow_node(&$vars) {
   // directory and add theme_hook_gmapnodelabel($node, $location) to it.
   // Be sure to enable your 'flexinode_#.module'.
   return '<div class="gmapnodelabel gmapnodelabel-' . drupal_clean_css_identifier($node->type) .
-    '">' . strtr(drupal_render(node_view($node, 'teaser')), "'\n\r", '"  ') . '</div>'; // make sure it all goes on one line.
+  '">' . strtr(drupal_render(node_view($node, 'teaser')), "'\n\r", '"  ') . '</div>'; // make sure it all goes on one line.
 }
 
 /**

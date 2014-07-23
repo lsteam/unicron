@@ -35,6 +35,7 @@ class gmap_plugin_style_gmap extends views_plugin_style {
 
     $options['enablermt'] = array('default' => FALSE);
     $options['rmtfield'] = array('default' => '');
+    $options['rmtfieldraw'] = array('default' => TRUE);
     $options['rmtcallback'] = array('default' => '');
 
     $options['center_on_nodearg'] = array('default' => 0);
@@ -282,7 +283,12 @@ class gmap_plugin_style_gmap extends views_plugin_style {
 
           // RMT mode.
           if ($this->options['enablermt']) {
-            $marker['rmt'] = $row->{$rmt_field};
+            if ($this->options['rmtfieldraw']) {
+              $marker['rmt'] = $row->{$rmt_field};
+            }
+            else {
+              $marker['rmt'] = $this->rendered_fields[$row_index][$rmt_field_obj->field];
+            }
           }
           elseif (!empty($defaults['markermode'])) {
             // Marker mode: popup.
@@ -333,8 +339,8 @@ class gmap_plugin_style_gmap extends views_plugin_style {
 
     $field_options = array();
     $fields = $this->display->handler->get_handlers('field');
-    foreach ($fields as $id => $handler) {
-      $field_options[$id] = $handler->ui_name(FALSE);
+    foreach ($fields as $handler) {
+      $field_options[$handler->options['id']] = (!empty($handler->options['label'])) ? $handler->options['label'] : $handler->options['id'];
     }
 
     $argument_options = array();
@@ -442,6 +448,13 @@ class gmap_plugin_style_gmap extends views_plugin_style {
       '#options' => $field_options,
       '#default_value' => $this->options['rmtfield'],
       '#process' => array('ctools_dependent_process'),
+      '#dependency' => array('edit-style-options-enablermt' => array(TRUE)),
+    );
+    $form['rmtfieldraw'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Use raw value of RMT field'),
+      '#description' => t('You can use a raw value of the RMT field or a displayed value, the displayed value is different from the raw value if the field output is rewrited in the field settings.'),
+      '#default_value' => $this->options['rmtfieldraw'],
       '#dependency' => array('edit-style-options-enablermt' => array(TRUE)),
     );
     $form['rmtcallback'] = array(

@@ -129,7 +129,7 @@ function location_help($path, $arg) {
         '@admin-settings-location' => url('admin/config/content/location'),
         '@external-http-cvs-drupal-org' => 'http://cvs.drupal.org/viewcvs/drupal/contributions/modules/location/database/'
       )) . '</ul>';
-      $output .= '<p>' . t('For more information please read the configuration and customization handbook <a href="@location">Location page</a>.', array('@location' => 'http://www.drupal.org/handbook/modules/location/')) . '</p>';
+      $output .= '<p>' . t('For more information read the configuration and customization handbook <a href="@location">Location page</a>.', array('@location' => 'http://www.drupal.org/handbook/modules/location/')) . '</p>';
       return $output;
   }
 }
@@ -157,6 +157,23 @@ function location_element_info() {
       '#tree' => TRUE,
     ),
   );
+}
+
+/**
+ * Implements hook_field_extra_fields()
+ */
+function location_field_extra_fields() {
+  $info = array();
+  foreach (node_type_get_types() as $node_type) {
+    if (!isset($info['node'][$node_type->type]['form']['locations'])) {
+      $info['node'][$node_type->type]['form']['locations'] = array(
+        'label' => t('Location'),
+        'description' => t('Location module form elements'),
+        'weight' => 30,
+      );
+    }
+  }
+  return $info;
 }
 
 /**
@@ -255,7 +272,7 @@ function _location_process_location($element, $form_state) {
   $element['#tree'] = TRUE;
 
   if (!isset($element['#title'])) {
-    $element['#title'] = t('Location');
+    $element['#title'] = t('Location', array(), array('context' => 'geolocation'));
   }
   if (empty($element['#location_settings'])) {
     $element['#location_settings'] = array();
@@ -327,7 +344,7 @@ function _location_process_location($element, $form_state) {
       $provinces = location_get_provinces($country);
       // The submit handler expects to find the full province name, not the
       // abbreviation. The select options should reflect this expectation.
-      $element[$field]['#options'] = array('' => t('Please select'), 'xx' => t('NOT LISTED')) + $provinces;
+      $element[$field]['#options'] = array('' => t('Select'), 'xx' => t('NOT LISTED')) + $provinces;
     }
   }
 
@@ -784,7 +801,7 @@ function location_locationapi(&$obj, $op, $a3 = NULL, $a4 = NULL, $a5 = NULL) {
 
               // Options are defined once during hook_element implementation.
               // @see _location_process_location
-              // $options = array_merge(array('' => t('Please select'), 'xx' => t('NOT LISTED')), location_get_provinces($country));
+              // $options = array_merge(array('' => t('Select'), 'xx' => t('NOT LISTED')), location_get_provinces($country));
               if (!empty($settings['#parents'])) {
                 $wrapper_suffix = '-' . implode('-', $settings['#parents']);
               }
@@ -828,7 +845,7 @@ function location_locationapi(&$obj, $op, $a3 = NULL, $a4 = NULL, $a5 = NULL) {
           }
           else {
             $options = array_merge(array(
-              '' => t('Please select'),
+              '' => t('Select'),
               'xx' => t('NOT LISTED')
             ), location_get_iso3166_list());
             if (!empty($settings['#parents'])) {
@@ -1146,6 +1163,11 @@ function _location_country_ajax_callback($form, $form_state) {
     return $form['locations'][arg(3)]['province'];
   }
   elseif (isset($form[arg(2)][arg(3)][arg(4)])) {
+    if (isset($form[arg(2)][arg(3)][arg(4)]['#entity_type']) && $form[arg(2)][arg(3)][arg(4)]['#entity_type'] == 'field_collection_item') {
+      $selected_country_value = $form[arg(2)][arg(3)][arg(4)][arg(5)][arg(6)][arg(7)]['country']['#value'];
+      $form[arg(2)][arg(3)][arg(4)][arg(5)][arg(6)][arg(7)]['province']['#options'] = array('' => t('Select'), 'xx' => t('NOT LISTED')) + location_get_provinces($selected_country_value);
+      return $form[arg(2)][arg(3)][arg(4)][arg(5)][arg(6)][arg(7)]['province'];
+    }
     return $form[arg(2)][arg(3)][arg(4)]['province'];
   }
 }
@@ -1929,7 +1951,7 @@ function location_form($settings, $locations) {
 
   // Tidy up the form in the single location case.
   if ($numforms == 1) {
-    $form[0]['#title'] = t('Location');
+    $form[0]['#title'] = t('Location', array(), array('context' => 'geolocation'));
     // If the user had configured the form for a single location, inherit
     // the collapsible / collapsed settings.
     $form[0]['#collapsible'] = $settings['form']['collapsible'];
