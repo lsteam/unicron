@@ -126,7 +126,8 @@ Drupal.extlink.applyClassAndSpan = function (links, class_name) {
     $links_to_process = $(links);
   }
   else {
-    $links_to_process = $(links).not('[img]');
+   var links_with_images = $(links).find('img').parents('a');
+   $links_to_process = $(links).not(links_with_images);
   }
   $links_to_process.addClass(class_name);
   var i;
