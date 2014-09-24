@@ -1,9 +1,10 @@
 <?php
 
 /**
- * @defgroup Location Location: An API for working with locations.
- *
+ * @file
  * Public API for the Location module.
+ *
+ * @defgroup Location Location: An API for working with locations.
  */
 
 
@@ -14,7 +15,7 @@
  * some options are configured through an interface provided by location.module.
  */
 
-include_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'location') . '/earth.inc');
+include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'location') . '/earth.inc';
 
 /**
  * Get a deep-link to a mapping service such as Yahoo! Maps or MapPoint given an location.  The
@@ -46,10 +47,16 @@ function location_map_link($location = array(), $link_text = 'See map: ') {
   $providers_func = 'location_map_link_' . $location['country'] . '_providers';
   // Merge the global providers with country specific ones so that countries
   // can add to or override the defaults.
-  $providers = function_exists($providers_func) ? array_merge(location_map_link_providers(), $providers_func()) : location_map_link_providers();
+  $providers = function_exists($providers_func) ? array_merge(
+    location_map_link_providers(),
+    $providers_func()
+  ) : location_map_link_providers();
   // Default providers will be taken from the country specific default providers
   // function if it exists, otherwise it will use the global function.
-  $selected_providers = variable_get('location_map_link_' . $location['country'], function_exists($default_func) ? $default_func() : location_map_link_default_providers());
+  $selected_providers = variable_get(
+    'location_map_link_' . $location['country'],
+    function_exists($default_func) ? $default_func() : location_map_link_default_providers()
+  );
 
   $links = array();
   foreach ($selected_providers as $mapper) {
@@ -58,7 +65,10 @@ function location_map_link($location = array(), $link_text = 'See map: ') {
     $link_func = function_exists($link_func) ? $link_func : 'location_map_link_' . $mapper;
     if (function_exists($link_func)) {
       if ($link = $link_func($location)) {
-        $links[] = '<a href="' . $link . '"' . (variable_get('location_maplink_external', 0) ? ' ' . variable_get('location_maplink_external_method', 'target="_blank"') : '') . '>' . $providers[$mapper]['name'] . '</a>';
+        $links[] = '<a href="' . $link . '"' . (variable_get('location_maplink_external', 0) ? ' ' . variable_get(
+              'location_maplink_external_method',
+              'target="_blank"'
+            ) : '') . '>' . $providers[$mapper]['name'] . '</a>';
       }
     }
   }
@@ -169,7 +179,10 @@ function location_map_link_google($location = array()) {
 function location_get_postalcode_data($location = array()) {
   $location['country'] = isset($location['country']) ? trim($location['country']) : NULL;
   $location['postal_code'] = isset($location['postal_code']) ? trim($location['postal_code']) : NULL;
-  if (is_null($location['postal_code']) || is_null($location['country']) || empty($location['country']) || empty($location['postal_code']) || $location['postal_code'] == 'xx') {
+  if (is_null($location['postal_code']) || is_null(
+      $location['country']
+    ) || empty($location['country']) || empty($location['postal_code']) || $location['postal_code'] == 'xx'
+  ) {
     return NULL;
   }
   location_load_country($location['country']);
@@ -220,6 +233,7 @@ function location_distance_between($latlon_a = array(), $latlon_b = array(), $di
   //$conversion_factor = ($distance_unit == 'km') ? 1000.0 : 1609.347;
 
   $meters = earth_distance($latlon_a['lon'], $latlon_a['lat'], $latlon_b['lon'], $latlon_b['lat']);
+
   return array(
     'scalar' => round($meters / (($distance_unit == 'km') ? 1000.0 : 1609.347), 1),
     'distance_unit' => $distance_unit
@@ -316,6 +330,7 @@ function _location_convert_distance_to_meters($distance, $distance_unit = 'km') 
 
   // Convert distance to meters
   $retval = round(floatval($distance) * (($distance_unit == 'km') ? 1000.0 : 1609.347), 2);
+
   return $retval;
 }
 
@@ -396,14 +411,17 @@ function location_latlon_rough_default($location = array()) {
       // and store results in zipcodes table for next lookups being internally handled
       // (yeah this is missing city/state info a.t.m., but is way better than nothing!)
       db_insert('zipcodes')
-        ->fields(array(
-          'latitude' => $newlatlong['lat'],
-          'longitude' => $newlatlong['lon'],
-          'country' => $location['country'],
-          'zip' => $location['postal_code'],
-        ))
+        ->fields(
+          array(
+            'latitude' => $newlatlong['lat'],
+            'longitude' => $newlatlong['lon'],
+            'country' => $location['country'],
+            'zip' => $location['postal_code'],
+          )
+        )
         ->execute();
     }
+
     return $newlatlong;
   }
   else {
@@ -495,6 +513,7 @@ function location_latlon_exact($location = array()) {
       return NULL;
     }
   }
+
   return NULL;
 }
 
@@ -514,7 +533,6 @@ function location_latlon_exact($location = array()) {
  */
 function _location_supported_countries() {
   $supported_countries = & drupal_static(__FUNCTION__, array());
-
 
   // If this function has already been called this request, we can avoid a DB hit.
   if (!empty($supported_countries)) {
@@ -536,6 +554,7 @@ function _location_supported_countries() {
     }
     cache_set('location:supported-countries', $supported_countries, 'cache_location');
   }
+
   return $supported_countries;
 }
 
@@ -545,25 +564,33 @@ function _location_supported_countries() {
  */
 function location_get_provinces($country = 'us') {
   $provinces = & drupal_static(__FUNCTION__, array());
-  //Current language
+  // Current language.
   $lang_code = $GLOBALS['language']->language;
 
   location_standardize_country_code($country);
-  if (isset($provinces[$country])) {
-    return $provinces[$country];
+  if (!isset($provinces[$country])) {
+    if ($cache = cache_get("provinces:$country:$lang_code", 'cache_location')) {
+      $provinces[$country] = $cache->data;
+    }
+    else {
+      location_load_country($country);
+      $func = 'location_province_list_' . $country;
+      if (function_exists($func)) {
+        $provinces[$country] = $func();
+        cache_set("provinces:$country:$lang_code", $provinces[$country], 'cache_location');
+      }
+    }
   }
-  if ($cache = cache_get("provinces:$country:$lang_code", 'cache_location')) {
-    $provinces[$country] = $cache->data;
-    return $provinces[$country];
-  }
-  location_load_country($country);
-  $func = 'location_province_list_' . $country;
-  if (function_exists($func)) {
-    $provinces[$country] = $func();
-    cache_set("provinces:$country:$lang_code", $provinces[$country], 'cache_location');
-    return $provinces[$country];
-  }
-  return array();
+
+  // Invoke hook_location_provinces_alter and
+  // hook_location_provinces_COUNTRY_CODE_alter.
+  drupal_alter(
+    array('location_provinces', 'location_provinces_' . $country),
+    $provinces,
+    $country
+  );
+
+  return isset($provinces[$country]) ? $provinces[$country] : array();
 }
 
 // @@@ New in 3.x, document.
@@ -621,6 +648,7 @@ function location_province_code($country = 'us', $province = 'xx') {
       }
     }
   }
+
   return '';
 }
 
@@ -633,10 +661,12 @@ function location_standardize_country_code(&$country) {
   // @@@ Double check the validity of this validity check. ;)
   if (!ctype_alpha($country) || strlen($country) != 2) {
     $country = 'xx';
+
     return FALSE;
   }
   else {
     $country = strtolower($country);
+
     return TRUE;
   }
 }
@@ -657,9 +687,11 @@ function location_load_country($country) {
 
   $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'location') . '/supported/location.' . $country . '.inc';
   if (file_exists($file)) {
-    include_once($file);
+    include_once $file;
+
     return TRUE;
   }
+
   return FALSE;
 }
 
@@ -668,7 +700,7 @@ function location_load_country($country) {
  * Load a general geocoding service.
  */
 function location_load_geocoder($geocoder) {
-  include_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'location') . '/geocoding/' . $geocoder . '.inc');
+  include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'location') . '/geocoding/' . $geocoder . '.inc';
 }
 
 /**
@@ -731,7 +763,11 @@ function location_get_general_geocoder_list() {
   $list = & drupal_static(__FUNCTION__, array());
 
   if (!count($list)) {
-    $files = file_scan_directory(drupal_get_path('module', 'location') . '/geocoding', '/\.inc$/', array('nomask' => '/(\.\.?|CVS|\.svn)$/'));
+    $files = file_scan_directory(
+      drupal_get_path('module', 'location') . '/geocoding',
+      '/\.inc$/',
+      array('nomask' => '/(\.\.?|CVS|\.svn)$/')
+    );
     foreach ($files as $full_path_name => $fileinfo) {
       $list[] = $fileinfo->name;
     }
@@ -762,5 +798,6 @@ function location_get_iso3166_list($upper = FALSE) {
     // to convert.
     $countries = array_change_key_case(country_get_list(), CASE_LOWER);
   }
+
   return $countries;
 }

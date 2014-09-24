@@ -15,9 +15,9 @@ project = "location"
 datestamp = "1346676288"
 
 
-; Information added by Drupal.org packaging script on 2014-06-27
-version = "7.x-3.3"
+; Information added by Drupal.org packaging script on 2014-09-07
+version = "7.x-3.4"
 core = "7.x"
 project = "location"
-datestamp = "1403865528"
+datestamp = "1410098932"
 

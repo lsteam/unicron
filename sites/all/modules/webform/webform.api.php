@@ -241,8 +241,10 @@ function hook_webform_submission_actions($node, $submission) {
  * @param integer $sid
  *    The id of the most recent submission to be presented for editing. Change
  *    to a different draft's sid or set to NULL for a new draft.
+ * @param array $context
+ *    Array of context with indices 'nid' and 'uid'.
  */
-function hook_webform_draft_alter(&$sid) {
+function hook_webform_draft_alter(&$sid, $context) {
   if ($_GET['newdraft']) {
     $sid = NULL;
   }
@@ -637,6 +639,8 @@ function hook_webform_submission_access($node, $submission, $op = 'view', $accou
  *
  * Note in addition to the view access to the results granted here, the $account
  * must also have view access to the Webform node in order to see results.
+ * Access via this hook is in addition (adds permission) to the standard
+ * webform access.
  *
  * @see webform_results_access().
  *
@@ -656,6 +660,26 @@ function hook_webform_results_access($node, $account) {
     return FALSE;
   }
 }
+
+/**
+ * Determine if a user has access to clear the results of a webform.
+ *
+ * Access via this hook is in addition (adds permission) to the standard
+ * webform access (delete all webform submissions).
+ *
+ * @see webform_results_clear_access().
+ *
+ * @param $node object
+ *   The Webform node to check access on.
+ * @param $account object
+ *   The user account to check access on.
+ * @return boolean
+ *   TRUE or FALSE if the user can access the webform results.
+ */
+function hook_webform_results_clear_access($node, $account) {
+  return user_access('my additional access', $account);
+}
+
 
 /**
  * Return an array of files associated with the component.

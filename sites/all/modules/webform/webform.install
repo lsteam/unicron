@@ -1515,7 +1515,7 @@ function webform_update_7405() {
   $schema = array(
     'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
     'type' => 'text',
-    'not null' => FALSE,
+    'not null' => TRUE,
     'initial' => '',
   );
   if (!db_field_exists('webform_emails', 'extra')) {
@@ -1777,12 +1777,10 @@ function webform_update_7415() {
  * Add columns for serial numbered submissions. Add serial numbers to existing submissions.
  */
 function webform_update_7416() {
-  // Delete stray entries from the Webform tables before adding serial numbers.
-  db_query("DELETE FROM {webform_submissions} WHERE nid NOT IN (SELECT nid FROM {webform})");
-  db_query("DELETE FROM {webform_submitted_data} WHERE nid NOT IN (SELECT nid FROM {webform})");
-
-  // Postgres has a transactional DDL.
-  db_transaction();
+  // SQL database implementations vary in how DDL statements are handled within
+  // transactions. Since this update routine should be run in maintenance mode
+  // without concurrent transactions, no DDL statements are executed within a
+  // transaction.
 
   // Add next_serial column to webform.
   $spec = array(
@@ -1806,10 +1804,16 @@ function webform_update_7416() {
     db_add_field('webform_submissions', 'serial', $spec);
   }
 
+  // Begin a transaction for updating the serial numbers. The transaction will
+  // commit when $txn is unset or goesout-of-scope.
+  $txn = db_transaction();
+
+  // Delete stray entries from the Webform tables before adding serial numbers.
+  db_query("DELETE FROM {webform_submissions} WHERE nid NOT IN (SELECT nid FROM {webform})");
+  db_query("DELETE FROM {webform_submitted_data} WHERE nid NOT IN (SELECT nid FROM {webform})");
+
+
   // Add serial numbers to all submissions.
-  // MySQL COMMITs transactions when it encounters a DDL change, so start the
-  // transaction. In Postgres transactions will nest, which is fine.
-  db_transaction();
 
   // Repeat for every Webform.
   $nids = db_select('webform', 'w')
@@ -1839,14 +1843,20 @@ function webform_update_7416() {
       ->condition('nid', $nid)
       ->execute();
   }
+  // Commit the transaction
+  unset ($txn);
 
   // Now that every submission has a serial number, make serial numbers required.
   $spec['not null'] = TRUE;
-  $keys = array(
-    'unique keys' => array(
-      'nid_serial' => array('nid', 'serial'),
-    ),
-  );
+  $keys = array();
+  // Create a unique index if it does not already exist.
+  if (!db_index_exists('webform_submissions', 'nid_serial')) {
+    $keys = array(
+      'unique keys' => array(
+        'nid_serial' => array('nid', 'serial'),
+      ),
+    );
+  }
   db_change_field('webform_submissions', 'serial', 'serial', $spec, $keys);
 
   return t('Columns for serial numbered submissions successfully added. Serial numbers added to existing submissions.');
@@ -1857,4 +1867,27 @@ function webform_update_7416() {
  */
 function webform_update_7417() {
   db_change_field('webform_component', 'name', 'name', array('type' => 'text', 'not null' => TRUE));
+}
+
+/**
+ * Upgrade the "extra" column in the e-mail table to be consistent with a new
+ * webform installation.
+ *
+ * In version 7.x-4.0-rc6 and earlier, the extra field was added with 'not null'
+ * FALSE, cause the schema module to report in mismatch. While functionally this
+ * causes no problem, this update removes the schema module's warning.
+ */
+function webform_update_7418() {
+  // While there should never be any NULL values in the extra field, change them to '' to be safe.
+  db_update('webform_emails')
+    ->fields(array('extra' => ''))
+    ->isNull('extra')
+    ->execute();
+  // Pass a complete field specification to db_change_field for cross-database compatiblity.
+  $spec = array(
+    'description' => 'A serialized array of additional options for the e-mail configuration, including excluded components and value mapping for the TO and FROM addresses for select lists.',
+    'type' => 'text',
+    'not null' => TRUE,
+  );
+  db_change_field('webform_emails', 'extra', 'extra', $spec);
 }

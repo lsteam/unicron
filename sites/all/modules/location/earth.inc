@@ -1,19 +1,19 @@
 <?php
 
 /**
- * License clarification:
- *
- * On Feb 13, 2005, in message <Pine.LNX.4.58.0502131827510.5072@server1.LFW.org>,
- * the creator of these routines, Ka-Ping Yee, authorized these routines to be
- * distributed under the GPL.
- */
-
-/**
  * @file
  * Trigonometry for calculating geographical distances.
  * All function arguments and return values measure distances in metres
  * and angles in degrees.  The ellipsoid model is from the WGS-84 datum.
  * Ka-Ping Yee, 2003-08-11
+ */
+
+/**
+ * License clarification:
+ *
+ * On Feb 13, 2005, in message <Pine.LNX.4.58.0502131827510.5072@server1.LFW.org>,
+ * the creator of these routines, Ka-Ping Yee, authorized these routines to be
+ * distributed under the GPL.
  */
 
 //$earth_radius_semimajor = 6378137.0;
@@ -57,6 +57,7 @@ function earth_radius($latitude = 37.9) {
 
   $x = cos($lat) / earth_radius_semimajor();
   $y = sin($lat) / earth_radius_semiminor();
+
   return 1 / (sqrt($x * $x + $y * $y));
 }
 
@@ -76,6 +77,7 @@ function earth_xyz($longitude, $latitude, $height = 0) {
   $x = ($radius + $height) * $coslat * $coslong;
   $y = ($radius + $height) * $coslat * $sinlong;
   $z = ($radius * (1 - earth_eccentricity_sq()) + $height) * $sinlat;
+
   return array($x, $y, $z);
 }
 
@@ -95,6 +97,7 @@ function earth_distance($longitude1, $latitude1, $longitude2, $latitude2) {
   $cosangle = cos($lat1) * cos($lat2) *
     (cos($long1) * cos($long2) + sin($long1) * sin($long2)) +
     sin($lat1) * sin($lat2);
+
   return acos($cosangle) * $radius;
 }
 
@@ -119,6 +122,7 @@ function earth_distance_sql($longitude, $latitude, $tbl_alias = '') {
   $coslat = cos($lat);
   $sinlong = sin($long);
   $sinlat = sin($lat);
+
   return "(COALESCE(ACOS($coslat*COS(RADIANS({$tbl_alias}latitude))*($coslong*COS(RADIANS({$tbl_alias}longitude)) + $sinlong*SIN(RADIANS({$tbl_alias}longitude))) + $sinlat*SIN(RADIANS({$tbl_alias}latitude))), 0.00000)*$radius)";
 }
 
@@ -149,6 +153,7 @@ function earth_longitude_range($longitude, $latitude, $distance) {
   if ($maxlong > pi()) {
     $maxlong = $maxlong - pi() * 2;
   }
+
   return array(rad2deg($minlong), rad2deg($maxlong));
 }
 
@@ -162,7 +167,8 @@ function earth_latitude_range($longitude, $latitude, $distance) {
   $minlat = $lat - $angle;
   $maxlat = $lat + $angle;
   $rightangle = pi() / 2;
-  if ($minlat < -$rightangle) { // wrapped around the south pole
+  // Wrapped around the south pole.
+  if ($minlat < -$rightangle) {
     $overshoot = -$minlat - $rightangle;
     $minlat = -$rightangle + $overshoot;
     if ($minlat > $maxlat) {
@@ -170,7 +176,8 @@ function earth_latitude_range($longitude, $latitude, $distance) {
     }
     $minlat = -$rightangle;
   }
-  if ($maxlat > $rightangle) { // wrapped around the north pole
+  // Wrapped around the north pole.
+  if ($maxlat > $rightangle) {
     $overshoot = $maxlat - $rightangle;
     $maxlat = $rightangle - $overshoot;
     if ($maxlat < $minlat) {
@@ -178,6 +185,7 @@ function earth_latitude_range($longitude, $latitude, $distance) {
     }
     $maxlat = $rightangle;
   }
+
   return array(rad2deg($minlat), rad2deg($maxlat));
 }
 

@@ -46,8 +46,8 @@ function webform_conditionals_form($form, &$form_state, $node) {
   $form_state['conditional_count'] = isset($form_state['conditional_count']) ? $form_state['conditional_count'] : 1;
   $form_state['conditional_count'] = count($conditionals) > $form_state['conditional_count'] ? count($conditionals) : $form_state['conditional_count'];
 
-  $source_list = webform_component_list($node, 'conditional', TRUE, TRUE);
-  $target_list = webform_component_list($node, TRUE);
+  $source_list = webform_component_list($node, 'conditional', 'path', TRUE);
+  $target_list = webform_component_list($node, TRUE, 'path', TRUE);
   $delta = $form_state['conditional_count'];
   $weight = -$delta - 1;
   $index = 0;
@@ -123,18 +123,20 @@ function webform_conditionals_form_add($form, &$form_state) {
     $weight = max($weight, $conditional['weight']);
   }
 
-  $conditional['weight'] = $weight + 1;
-  $conditional['rules'][0] = array(
-    'source' => NULL,
-    'operator' => NULL,
-    'value' => NULL,
-  );
-  $conditional['action'] = 'hide';
-  $conditional['target'] = NULL;
-  $conditional['andor'] = 'and';
-
   // Add the conditional to form state and rebuild the form.
-  $form_state['values']['conditionals'][] = $conditional;
+  $form_state['values']['conditionals'][] = array(
+    'rules' => array(
+      array(
+        'source' => NULL,
+        'operator' => NULL,
+        'value' => NULL,
+      ),
+    ),
+    'andor' => 'and',
+    'action' => 'hide',
+    'target' => NULL,
+    'weight' => $weight + 1,
+  );
   $form_state['rebuild'] = TRUE;
 }
 
@@ -176,6 +178,7 @@ function webform_conditionals_form_submit($form, &$form_state) {
   unset($form_state['values']['conditionals']['new']);
 
   $conditionals = array();
+  $targets = array();
 
   // Fill in missing properties for each value so that it can save properly.
   // TODO: Remove hard-coded source and target type.
@@ -186,6 +189,12 @@ function webform_conditionals_form_submit($form, &$form_state) {
       $conditional['rules'][$rid]['source_type'] = 'component';
     }
     $conditionals[$rgid] = $conditional;
+    // Warn if there are multiple conditionals targetting the same component.
+    if (isset($targets[$conditional['target']])) {
+      drupal_set_message(t('More than one conditional hides or shows component "@name". Only the most-recently evaluated conditional will determine whether "@name" is displayed.',
+                           array('@name' => $node->webform['components'][$conditional['target']]['name'])), 'warning', FALSE);
+    }
+    $targets[$conditional['target']] = TRUE;
   }
 
   $node->webform['conditionals'] = $conditionals;
@@ -766,6 +775,7 @@ function _webform_conditional_operator_info() {
  * for the condition.
  */
 function webform_conditional_form_select($node) {
+  static $count = 0;
   $forms = array();
   webform_component_include('select');
   foreach ($node->webform['components'] as $cid => $component) {
@@ -778,13 +788,14 @@ function webform_conditional_form_select($node) {
         '#size' => NULL,
         '#attributes' => array(),
         '#id' => NULL,
-        '#name' => NULL,
+        '#name' => 'webform-conditional-select-' . $cid . '-' . $count,
         '#options' => $options,
         '#parents' => array(),
       );
       $forms[$cid] = drupal_render($element);
     }
   }
+  $count++;
   return $forms;
 }
 
@@ -792,12 +803,14 @@ function webform_conditional_form_select($node) {
  * Form callback for date conditional fields.
  */
 function webform_conditional_form_date($node) {
+  static $count = 0;
   $element = array(
     '#title' => NULL,
     '#title_display' => 'none',
     '#size' => 24,
     '#attributes' => array('placeholder' => t('@format or valid date', array('@format' => webform_date_format('short')))),
     '#type' => 'textfield',
+    '#name' => 'webform-conditional-date-' . $count++,
   );
   return drupal_render($element);
 }
@@ -806,12 +819,14 @@ function webform_conditional_form_date($node) {
  * Form callback for time conditional fields.
  */
 function webform_conditional_form_time($node) {
+  static $count = 0;
   $element = array(
     '#title' => NULL,
     '#title_display' => 'none',
     '#size' => 24,
     '#attributes' => array('placeholder' => t('HH:MMam or valid time')),
     '#type' => 'textfield',
+    '#name' => 'webform-conditional-time-' . $count++,
   );
   return drupal_render($element);
 }
@@ -928,7 +943,7 @@ function webform_conditional_prepare_date_js($rule_value) {
   // slightly stale by the time the comparison executes. Timestamps are in
   // milliseconds, as to match JavaScript's Date.toString() method.
   $date = webform_strtodate('c', $rule_value, 'UTC');
-  return (int) (webform_strtotime($date) . '000');
+  return webform_strtotime($date);
 }
 
 /**
@@ -937,7 +952,7 @@ function webform_conditional_prepare_date_js($rule_value) {
 function webform_conditional_prepare_time_js($rule_value) {
   $date = webform_conditional_prepare_date_js($rule_value);
   $today = webform_strtodate('c', 'today', 'UTC');
-  $today = (int) (webform_strtotime($today) . '000');
+  $today = webform_strtotime($today);
   return $date - $today;
 }
 
@@ -959,15 +974,7 @@ function webform_conditional_operator_string_equal($input_values, $rule_value) {
  * Conditional callback for string comparisons.
  */
 function webform_conditional_operator_string_not_equal($input_values, $rule_value) {
-  $found = FALSE;
-  foreach ($input_values as $value) {
-    // Checkbox values come in as 0 integers for unchecked boxes.
-    $value = ($value === 0) ? '' : $value;
-    if (strcasecmp($value, $rule_value) === 0) {
-      $found = TRUE;
-    }
-  }
-  return !$found;
+  return !webform_conditional_operator_string_equal($input_values, $rule_value);
 }
 
 /**
@@ -986,13 +993,7 @@ function webform_conditional_operator_string_contains($input_values, $rule_value
  * Conditional callback for string comparisons.
  */
 function webform_conditional_operator_string_does_not_contain($input_values, $rule_value) {
-  $found = FALSE;
-  foreach ($input_values as $value) {
-    if (stripos($value, $rule_value) !== FALSE) {
-      $found = TRUE;
-    }
-  }
-  return !$found;
+  return !webform_conditional_operator_string_contains($input_values, $rule_value);
 }
 
 /**
@@ -1044,34 +1045,28 @@ function webform_conditional_operator_string_not_empty($input_values, $rule_valu
  * Conditional callback for numeric comparisons.
  */
 function webform_conditional_operator_numeric_equal($input_values, $rule_value) {
-  // See float comparison: http://php.net/manual/en/language.types.float.php
-  $epsilon = 0.000001;
-  // An empty string does not match any number.
-  return $input_values[0] === '' ? FALSE : (abs((float)$input_values[0] - (float)$rule_value) < $epsilon);
+  return empty($input_values) ? FALSE : webform_compare_floats($input_values[0], $rule_value) === 0;
 }
 
 /**
  * Conditional callback for numeric comparisons.
  */
 function webform_conditional_operator_numeric_not_equal($input_values, $rule_value) {
-  // See float comparison: http://php.net/manual/en/language.types.float.php
-  $epsilon = 0.000001;
-  // An empty string does not match any number.
-  return $input_values[0] === '' ? TRUE : (abs((float)$input_values[0] - (float)$rule_value) >= $epsilon);
+  return !webform_conditional_operator_numeric_equal($input_values, $rule_value);
 }
 
 /**
  * Conditional callback for numeric comparisons.
  */
 function webform_conditional_operator_numeric_greater_than($input_values, $rule_value) {
-  return (float)$input_values[0] > (float)$rule_value;
+  return empty($input_values) ? FALSE : webform_compare_floats($input_values[0], $rule_value) > 0;
 }
 
 /**
  * Conditional callback for numeric comparisons.
  */
 function webform_conditional_operator_numeric_less_than($input_values, $rule_value) {
-  return (float)$input_values[0] < (float)$rule_value;
+  return empty($input_values) ? FALSE : webform_compare_floats($input_values[0], $rule_value) < 0;
 }
 
 /**
@@ -1079,7 +1074,7 @@ function webform_conditional_operator_numeric_less_than($input_values, $rule_val
  */
 function webform_conditional_operator_datetime_equal($input_values, $rule_value) {
   $input_values = webform_conditional_value_datetime($input_values);
-  return webform_strtotime($input_values[0]) === webform_strtotime($rule_value);
+  return empty($input_values) ? FALSE : webform_strtotime($input_values[0]) === webform_strtotime($rule_value);
 }
 
 /**
@@ -1087,7 +1082,7 @@ function webform_conditional_operator_datetime_equal($input_values, $rule_value)
  */
 function webform_conditional_operator_datetime_after($input_values, $rule_value) {
   $input_values = webform_conditional_value_datetime($input_values);
-  return webform_strtotime($input_values[0]) > webform_strtotime($rule_value);
+  return empty($input_values) ? FALSE : webform_strtotime($input_values[0]) > webform_strtotime($rule_value);
 }
 
 /**
@@ -1095,7 +1090,7 @@ function webform_conditional_operator_datetime_after($input_values, $rule_value)
  */
 function webform_conditional_operator_datetime_before($input_values, $rule_value) {
   $input_values = webform_conditional_value_datetime($input_values);
-  return webform_strtotime($input_values[0]) < webform_strtotime($rule_value);
+  return empty($input_values) ? FALSE : webform_strtotime($input_values[0]) < webform_strtotime($rule_value);
 }
 
 /**
