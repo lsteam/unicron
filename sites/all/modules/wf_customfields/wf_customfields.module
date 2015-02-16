@@ -1,0 +1,9 @@
+<?php
+function mymodule_form_alter(&$form, &$form_state, $form_id) {
+    if ($form_id == 'class-evaluation-entityform-edit-form') {
+        $entity = end(entity_load('cus_class_college', array(arg(3))));
+        $form['submitted']['field_cus_class_id']['#default_value'] = $entity->property;
+        $form['submitted']['field_cus_class_id']['#edit-field-form-name-first-und-0-value']['value'] = $entity->property;
+        prepopulate_form($submitted, $value_array);
+    }
+} 
