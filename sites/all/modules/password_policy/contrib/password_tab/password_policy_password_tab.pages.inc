@@ -37,7 +37,7 @@ function password_policy_password_tab($form, &$form_state, $account) {
     }
     // The user must enter their current password to change to a new one.
     if (isset($protected_values['pass'])) {
-      $form['current_pass_required_values'] = array(
+        $form['account']['current_pass_required_values'] = array(
         '#type' => 'value',
         '#value' => array('pass' => $protected_values['pass']),
       );

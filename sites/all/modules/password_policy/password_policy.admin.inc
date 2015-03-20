@@ -61,6 +61,20 @@ function password_policy_admin_settings() {
     '#default_value' => variable_get('password_policy_show_restrictions', 0),
     '#description' => t('Should password restrictions be listed on the password change page. A javascript warning block will be shown anyways if ithe typed in password does not meet the restrictions.'),
   );
+  
+  // Force password change settings.
+  $form['force_change'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Force password change settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['force_change']['password_policy_force_change_extra_allowed_paths'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Extra allowed paths'),
+    '#default_value' => variable_get('password_policy_force_change_extra_allowed_paths', _password_policy_default_force_change_extra_allowed_paths()),
+    '#description' => t("Extra paths, one per line, that the user can access as normal when being forced to change their password. The '*' character is a wildcard. These paths are in addition to the minimally allowed paths for password changes, which are always allowed by Password Policy. This setting can be used, for example, to allow paths requested by custom AJAX on the password change page."),
+  );
 
   // E-mail notification settings.
   $form['email'] = array(
@@ -110,6 +124,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
       variable_set('password_policy_warning_subject', $form_state['values']['password_policy_warning_subject']);
       variable_set('password_policy_warning_body', $form_state['values']['password_policy_warning_body']);
       variable_set('password_policy_force_change_reset', $form_state['values']['password_policy_force_change_reset']);
+      variable_set('password_policy_force_change_extra_allowed_paths', $form_state['values']['password_policy_force_change_extra_allowed_paths']);
       drupal_set_message(t('The configuration options have been saved.'));
       break;
 
@@ -121,6 +136,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
       variable_del('password_policy_warning_subject');
       variable_del('password_policy_warning_body');
       variable_del('password_policy_force_change_reset');
+      variable_del('password_policy_force_change_extra_allowed_paths');
       drupal_set_message(t('The configuration options have been reset to their default values.'));
       break;
   }
