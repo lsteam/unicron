@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * Implements hook_requirements().
+ */
+function ga_stats_requirements($phase) {
+  if ($phase != 'runtime') {
+    return array();
+  }
+
+  $t = get_t();
+  $requirements = array();
+
+  $requirements['ga_stats_ready'] = array('title' => $t('GA Stats Connection'));
+  if (!ga_stats_is_ready()) {
+    $requirements['ga_stats_ready'] += array(
+      'value' => l($t('Not Configured'), 'admin/config/services/ga_stats'),
+      'description' => $t('The GA Stats module is not configured for use. Any dependent functionality is broken.'),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  elseif (!ga_stats_can_authenticate()) {
+    $requirements['ga_stats_ready'] += array(
+      'value' => l($t('Invalid Credentials'), 'admin/config/services/ga_stats'),
+      'description' => $t('GA Stats credentials are invalid. Please update on the configuration page. Any dependent functionality is broken.'),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  else {
+    $requirements['ga_stats_ready'] += array(
+      'value' => $t('Connected'),
+      'severity' => REQUIREMENT_OK,
+    );
+  }
+
+  // Currently hardcoded in client-library path.
+  $requirements['ga_stats_api_version'] = array(
+    'title' => $t('GA Stats API Version Compatibility'),
+    'value' => 'v2.4',
+    'severity' => REQUIREMENT_INFO,
+    'description' => $t('The next scheduled update is set for !date', array(
+      '!date' => date('r', ga_stats_data_expiration_date()),
+    )),
+  );
+
+  if (!variable_get('ga_stats_last_update', FALSE)) {
+    $requirements['ga_stats_api_version']['severity'] = REQUIREMENT_WARNING;
+    $requirements['ga_stats_api_version']['description'] = $t('Google Analytics data has not been accessed yet. Please run cron or visit the !configuration page to update counts.',
+    array(
+      '!configuration' => l($t('configuration'), 'admin/config/services/ga_stats'),
+    ));
+  }
+
+  return $requirements;
+}
+
+/**
+ * Determine if the user credentials can successfully authenticate against Google.
+ *
+ * @return bool
+ */
+function ga_stats_can_authenticate() {
+  require_once('includes/ga.inc');
+  $client = ga_stats_get_client(TRUE);
+
+  return isset($client);
+}
+
+/**
+ * Implements hook_schema().
+ */
+function ga_stats_schema() {
+  $schema = array();
+
+  $schema['ga_stats_count'] = array(
+    'description' => 'Stores counts for different metics.',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'nid of related node',
+      ),
+      'url' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'URL of page',
+      ),
+      'metric' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'name of tracked metric',
+      ),
+      'timeframe' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'timeframe delimiter of metric'
+      ),
+      'count' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'number of hits recorded for the metric',
+      ),
+    ),
+    'indexes' => array(
+      'ga_stats_metric' => array('metric'),
+      'ga_stats_timeframe' => array('timeframe'),
+      'ga_stats_nid' => array('nid'),
+      'ga_stats_count' => array('count'),
+    )
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ga_stats_uninstall() {
+  variable_del('ga_stats_email');
+  variable_del('ga_stats_password');
+  variable_del('ga_stats_profile');
+  variable_del('ga_stats_acct_type');
+  variable_del('ga_stats_enabled_timeframes');
+  variable_del('ga_stats_enabled_metrics');
+  variable_del('ga_stats_last_update');
+}
+
+/**
+ * Add an index to the published date value field
+ */
+function ga_stats_update_7101(&$sandbox) {
+  try {
+    db_add_index('ga_stats_count', 'ga_stats_count', array('count'));
+  }
+  catch (FieldException $e) {
+    throw new DrupalUpdateException($e->getMessage());
+  }
+}

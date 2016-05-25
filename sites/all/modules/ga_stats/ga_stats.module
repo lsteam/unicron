@@ -1,0 +1,182 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function ga_stats_menu() {
+  $items = array();
+
+  $items['admin/config/services/ga_stats'] = array(
+    'title' => 'Google Analytics Statistics',
+    'description' => 'Configuration for Google Analytics Statistics',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ga_stats_admin_settings'),
+    'access arguments' => array('administer site config'),
+    'file' => 'ga_stats.admin.inc',
+  );
+
+  $items['admin/config/services/ga_stats/auth'] = array(
+    'title' => 'Authentication',
+    'description' => 'Submit API credentials for Google Analytics Statistics',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ga_stats_auth_settings'),
+    'access arguments' => array('administer site config'),
+    'file' => 'ga_stats.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/config/services/ga_stats/default'] = array(
+    'title' => 'Google Analytics Statistics',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_views_api()
+ */
+function ga_stats_views_api() {
+  return array(
+    'api' => 2,
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function ga_stats_cron() {
+  if (ga_stats_needs_update()) {
+    ga_stats_update_counts();
+  }
+}
+
+/**
+ * Determine if a scheduled statistics update is needed.
+ *
+ * @return bool
+ */
+function ga_stats_needs_update() {
+  return ga_stats_data_expiration_date() <= $_SERVER['REQUEST_TIME'];
+}
+
+/**
+ * Calculate when the analytics data will expire.
+ *
+ * @return int
+ */
+function ga_stats_data_expiration_date() {
+  $last = variable_get('ga_stats_last_update', 0);
+  $timeframe = variable_get('ga_stats_enabled_timeframes', array('today' => TRUE, 'month' => TRUE));
+
+  // Save the data for 10 or 30 minutes (based on whether hourly data is enabled)
+  // @todo clarify why this seems arbitrary.
+  if (array_key_exists('hour', $timeframe)) {
+    $expiration = 60 * 10;
+  }
+  else {
+    $expiration = 60 * 30;
+  }
+
+  return $last + $expiration;
+}
+
+/**
+ * Set the soonest statistics should be auto-updated.
+ *
+ * @return int
+ */
+function ga_stats_schedule_update() {
+  variable_set('ga_stats_last_update', $_SERVER['REQUEST_TIME']);
+
+  return $_SERVER['REQUEST_TIME'];
+}
+
+/**
+ * Refresh local cache of GA data.
+ */
+function ga_stats_update_counts() {
+  require_once('includes/ga.inc');
+
+  return _ga_stats_update_counts();
+}
+
+/**
+ * Determine if the module is properly configured for use.
+ *
+ * The current logic is a placeholder for something more sophisticated.
+ *
+ * @return bool
+ */
+function ga_stats_is_ready() {
+  return variable_get('ga_stats_email', FALSE) && variable_get('ga_stats_password', FALSE);
+}
+
+/**
+ * List metrics with plugin names and google analytics names
+ *
+ * @param bool $all
+ *   Default is FALSE. If TRUE, will return all metrics including inactive ones.
+ *
+ * @return array
+ */
+function ga_stats_ga_metrics($all = FALSE) {
+  $metrics = array(
+    'pageviews' => 'Page Views',
+    'uniquePageviews' => 'Unique Page Views',
+    'avgTimeOnPage' => 'Average Time on Page',
+    'entrances' => 'Entrance Page',
+  );
+
+  if (!$all) {
+    $enabled = variable_get('ga_stats_enabled_metrics', array('pageviews' => TRUE));
+    $metrics = array_intersect_key($metrics, array_filter($enabled));
+  }
+
+  return $metrics;
+}
+
+/**
+ * Retrieve timeframes which are used to delimit the range of GA data.
+ *
+ * @param bool $form_options
+ *  Default to FALSE to provide form elements. When TRUE, provides complete data
+ *  suitable for use with data requests.
+ * @param bool $all
+ *  Default is FALSE. If TRUE, will return all timeframes including inactive ones.
+ *
+ * @return array
+ *
+ * @todo add forever
+ */
+function ga_stats_ga_timeframes($form_options = FALSE, $all = FALSE) {
+  if ($form_options) {
+    $timeframes = array(
+      'hour' => 'in the past hour',
+      'today' => 'in the past 24 hours',
+      '2days' => 'in the past 48 hours',
+      'week' => 'in the past 7 days',
+      'month' => 'in the past 31 days',
+      'year' => 'in the past 365 days',
+      'forever' => 'since 2005 began'
+    );
+  }
+  else {
+    $timeframes = array(
+      'hour' => array('secsToSub' => (60*60), 'filter' => 'hour=='+date('G'), 'title' => 'in the past hour'),
+      'today' => array('secsToSub' => (60*60*24), 'filter' => 'day=='+date('j'), 'title' => 'in the past 24 hours'),
+      '2days' => array('secsToSub' => (60*60*24*2), 'title' => 'in the past 48 hours'),
+      'week' => array('secsToSub' => (60*60*24*7), 'title' => 'in the past 7 days'),
+      'month' => array('secsToSub' => (60*60*24*31), 'title' => 'in the past 31 days'),
+      'year' => array('secsToSub' => (60*60*24*365), 'title' => 'in the past 365 days'),
+      'forever' => array('secsToSub' => time() - strtotime('2005-01-01'), 'title' => 'since 2005 began'),
+    );
+  }
+
+  if (!$all) {
+    $enabled = variable_get('ga_stats_enabled_timeframes', array('today' => TRUE, 'month' => TRUE));
+    $timeframes = array_intersect_key($timeframes, array_filter($enabled));
+  }
+
+  return $timeframes;
+}
