@@ -315,6 +315,13 @@ function ds_search_search_page($results) {
   return theme('ds_search_page', $build);
 }
 
+ function _ds_search_cmp_group_by_weights($a, $b) {
+     if ($a['#weight'] == $b['#weight']) {
+ 	return 0;
+     }
+     return ($a['#weight'] < $b['#weight']) ? -1 : 1;
+ }
+
 /**
  * Helper function to group by type.
  */
@@ -384,6 +391,7 @@ function _ds_search_group_by_type(&$build) {
       $parity['ds-other'] = $parity['ds-other'] == 'odd' ? 'even' : 'odd';
     }
   }
+  uasort($build['search_results'], '_ds_search_cmp_group_by_weights');
 }
 
 /**
