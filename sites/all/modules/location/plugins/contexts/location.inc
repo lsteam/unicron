@@ -49,15 +49,15 @@ function location_context_create_location($empty, $data = NULL, $conf = FALSE) {
   if ($conf) {
     $lid = is_array($data) && isset($data['lid']) ? $data['lid'] : (is_object($data) ? $data->lid : 0);
     if (is_array($data) || !empty($reload)) {
-      $nid = $data['nid'];
+      $nid = isset($data['nid']) ? $data['nid'] : NULL;
       $data = location_load_location($lid);
-      $data['nid'] = $nid;
+      $data['nid'] = is_null($nid) ? FALSE : $nid;
     }
   }
 
   if (!empty($data)) {
     $context->data = $data;
-    $context->title = $data['city'];
+    $context->title = isset($data['city']) ? $data['city'] : '';
     $context->argument = $data['lid'];
 
     return $context;
@@ -86,24 +86,10 @@ function location_context_location_convert_list() {
  * Convert a context into a string.
  */
 function location_context_location_convert($context, $type) {
-  switch ($type) {
-    case 'name':
-    case 'street':
-    case 'additional':
-    case 'city':
-    case 'province':
-    case 'postal_code':
-    case 'country':
-    case 'latitude':
-    case 'longitude':
-    case 'province_name':
-    case 'country_name':
-      if (isset($context->data[$type])) {
-        return check_plain($context->data[$type]);
-      }
-
-    default:
-      return t('Unknown location keyword');
-
+  $fields = location_context_location_convert_list();
+  if (isset($fields[$type]) && isset($context->data[$type])) {
+    return check_plain($context->data[$type]);
   }
+
+  return t('Unknown location keyword');
 }
