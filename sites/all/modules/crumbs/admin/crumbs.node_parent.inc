@@ -66,20 +66,6 @@ EOT;
     $form['types'][$type_name] = $element;
   }
 
-  if (module_exists('token')) {
-    $form['token_help'] = array(
-      '#title' => t('Replacement patterns'),
-      '#type' => 'fieldset',
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-
-    $form['token_help']['help'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('node'),
-    );
-  }
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
