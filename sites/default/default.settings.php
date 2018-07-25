@@ -374,10 +374,13 @@ ini_set('session.cookie_lifetime', 2000000);
  * specified in $conf['reverse_proxy_addresses'] to work correctly.
  *
  * Enable this setting to get Drupal to determine the client IP from
- * the X-Forwarded-For header (or $conf['reverse_proxy_header'] if set).
- * If you are unsure about this setting, do not have a reverse proxy,
- * or Drupal operates in a shared hosting environment, this setting
- * should remain commented out.
+ * the X-Forwarded-For header (or $conf['reverse_proxy_header'] if set), also
+ * enable this setting to get Drupal determine the protocol from the
+ * X-Forwarded-Proto (or $conf['reverse_proxy_proto_header'] if set).
+ *
+ * If you are unsure about this setting, do not have a reverse proxy or Drupal
+ * operates in a shared hosting environment, this setting should remain
+ * commented out.
  *
  * In order for this setting to be used you must specify every possible
  * reverse proxy IP address in $conf['reverse_proxy_addresses'].
@@ -393,13 +396,19 @@ ini_set('session.cookie_lifetime', 2000000);
  * Specify every reverse proxy IP address in your environment.
  * This setting is required if $conf['reverse_proxy'] is TRUE.
  */
-# $conf['reverse_proxy_addresses'] = array('a.b.c.d', ...);
+# $conf['reverse_proxy_addresses'] = array('10.189.255.251');
 
 /**
  * Set this value if your proxy server sends the client IP in a header
  * other than X-Forwarded-For.
  */
 # $conf['reverse_proxy_header'] = 'HTTP_X_CLUSTER_CLIENT_IP';
+
+/**
+ * Set this value if your proxy server or load balancer sends the client
+ * protocol in a header other than X-Forwarded-Proto.
+ */
+# $conf['reverse_proxy_proto_header'] = 'HTTP_X_FORWARDED_PROTO';
 
 /**
  * Page caching:
