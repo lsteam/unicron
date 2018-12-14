@@ -8,7 +8,7 @@
 /**
  * The current system version.
  */
-define('VERSION', '7.59');
+define('VERSION', '7.60');
 
 /**
  * Core API compatibility.
@@ -730,16 +730,6 @@ function drupal_valid_http_host($host) {
  *   TRUE if the request is HTTPS, FALSE otherwise.
  */
 function drupal_is_https() {
-  // If Drupal is behind a reverse proxy or load balancer that is communicating
-  // with the end-user over https but with Drupal over http we check if
-  // $_SERVER['HTTP_X_FORWARDED_PROTO'] is set to 'https'.
-  if (variable_get('reverse_proxy', 0)) {
-    $reverse_proxy_proto_header = variable_get('reverse_proxy_proto_header', 'HTTP_X_FORWARDED_PROTO');
-    if (isset($_SERVER[$reverse_proxy_proto_header]) && strtolower($_SERVER[$reverse_proxy_proto_header]) == 'https') {
-      $_SERVER['HTTPS'] = 'on';
-    }
-  }
-
   return isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on';
 }
 
