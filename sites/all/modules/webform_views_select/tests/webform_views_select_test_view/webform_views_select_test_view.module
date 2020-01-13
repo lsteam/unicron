@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Main module file for the Webform Views Select Test View module.
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function webform_views_select_test_view_views_api() {
+  return array(
+    'version' => '3.0',
+  );
+}

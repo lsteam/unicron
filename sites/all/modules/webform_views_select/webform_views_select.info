@@ -1,0 +1,15 @@
+name = Webform Views Select
+description = Allows you to use a view as a data source for a webform select component
+package = Webform
+core = 7.x
+dependencies[] = views
+dependencies[] = webform
+files[] = WebformViewsSelectStyle.inc
+files[] = WebformViewsSelectHandler.inc
+files[] = tests/webform_views_select.test
+
+; Information added by Drupal.org packaging script on 2018-09-03
+version = "7.x-1.0"
+core = "7.x"
+project = "webform_views_select"
+datestamp = "1535956984"

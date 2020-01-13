@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Contains WebformViewsSelectViewEnabledTestCase.
+ */
+
+/**
+ * Test that a view only appears in the webform select list if it is enabled.
+ */
+class WebformViewsSelectViewEnabledTestCase extends DrupalWebTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Enabled View test',
+      'description' => 'Test that only enabled views are used',
+      'group' => 'Webform Views Select',
+      'dependencies' => array('webform', 'views'),
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp('webform', 'views', 'webform_views_select', 'webform_views_select_test_view');
+  }
+
+  /**
+   * Test that a disabled view is not listed as an options source.
+   */
+  public function testDisabledView() {
+    // Disable the view:
+    $view = views_get_view('webform_views_select_test_view');
+    ctools_export_crud_disable('views_view', $view);
+
+    // Clear cache:
+    ctools_export_load_object_reset('views_view');
+
+    $items = webform_views_select_webform_select_options_info();
+    $this->assertFalse(isset($items['webform_views_select_test_view-webform_select_1']), 'Disabled view is not listed in the select options info.');
+  }
+
+  /**
+   * Test that a enabled view is listed as an options source.
+   */
+  public function testEnabledView() {
+    $items = webform_views_select_webform_select_options_info();
+    $this->assertTrue(isset($items['webform_views_select_test_view-webform_select_1']), 'Enabled view is listed in the select options info.');
+  }
+
+}
