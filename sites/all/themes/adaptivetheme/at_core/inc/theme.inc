@@ -222,18 +222,24 @@ function adaptivetheme_item_list($vars) {
   else {
     $output = '<div class="item-list">';
   }
+  
+  // Only output the list container and title, if there are any list items.
+  // Check to see whether the block title exists before adding a header.
+  // Empty headers are not semantic and present accessibility challenges.
 
   if (isset($title) && $title !== '') {
-    $output .= '<h3>' . $title . '</h3>';
+    $output .= '<h3>' .  filter_xss_admin($title) . '</h3>';
   }
 
   if (!empty($items)) {
     $output .= "<$type" . drupal_attributes($attributes) . '>';
     $num_items = count($items);
-    foreach ($items as $i => $item) {
+    $i = 0;
+    foreach ($items as $item) {
       $attributes = array();
       $children = array();
       $data = '';
+      $i++;
       if (is_array($item)) {
         foreach ($item as $key => $value) {
           if ($key == 'data') {
@@ -263,10 +269,10 @@ function adaptivetheme_item_list($vars) {
         else {
           $attributes['class'][] = 'even';
         }
-        if ($i == 0) {
+        if ($i == 1) {
           $attributes['class'][] = 'first';
         }
-        if ($i == $num_items - 1) {
+        if ($i == $num_items) {
           $attributes['class'][] = 'last';
         }
       }
